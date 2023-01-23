@@ -28,9 +28,9 @@ typedef struct
 {
 	uint8_t iCurrent_Level;
 	uint16_t iCurrent_Value;
-	eCurrent_step_dir Step_Dir;
-	eCurrent_mode eMode;
-	eCurrent_state eState;
+	uint8_t Step_Dir;
+	uint8_t eMode;
+	uint8_t eState;
 } Current_t;
 
 void CurrentProcess(void);

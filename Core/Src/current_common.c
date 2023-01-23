@@ -10,9 +10,12 @@
 
 void CurrentProcess(void)
 {
+	uint16_t amplitude;
 	if (hCurrent->eState == Reset && hCurrent->eMode == Stop)
 	{
 		hCurrent->eMode = Receiver;
+
+		hCurrent->eState = Busy;
 
 		CS_T_HIGH();
 
@@ -20,22 +23,29 @@ void CurrentProcess(void)
 
 		CS_R_LOW();
 
-		CURENT_IO_Read(&hCurrent->iCurrent_Value);
+		CURENT_IO_Read(&amplitude);
 
-		CS_R_LOW();
+		hCurrent->iCurrent_Value = amplitude & 0x0FFF;
 
 		CS_R_HIGH();
 
+		EN_R_LOW();
+
 		HAL_Delay(100);
 
+		hCurrent->eState = Reset;
+
+		hCurrent->eMode = Stop;
+
 		UTIL_SEQ_SetTask(1 << CFG_TASK_SW1_BUTTON_PUSHED_ID, CFG_SCH_PRIO_0);
+
 	}
 }
 
 void CurrentStop(void)
 {
 	hCurrent->eMode = Stop;
-	hCurrent->eState = RESET;
+	hCurrent->eState = Reset;
 }
 
 void CurrentPCT(void)

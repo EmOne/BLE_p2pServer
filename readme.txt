@@ -116,5 +116,20 @@ Available Wiki pages:
 For more details refer to the Application Note:
   AN5289 - Building a Wireless application
 
+Extension payload protocol
+| Byte |
+| 0 | 	Device number 1 
+| 1 | 	0: led off, 
+		1: led on, 
+		2: current process, 
+		3: Current source, 
+		4: current stop
+| 2 |   0: Current source Ramp
+		1: Current source Step
+		2: Current source PCT
+
+
+
+
  * <h3><center>&copy; COPYRIGHT STMicroelectronics</center></h3>
  */

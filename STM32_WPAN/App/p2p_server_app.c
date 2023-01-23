@@ -359,6 +359,9 @@ void P2PS_APP_Init(void)
 /* USER CODE BEGIN P2PS_APP_Init */
 	if (hCurrent == NULL)
 		hCurrent = &P2P_Server_App_Context.CurrentControl;
+
+	P2P_Server_App_Context.CurrentControl.eState = Reset;
+
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_PROCESS_ID, UTIL_SEQ_RFU,
 			CurrentProcess);
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_PCT_ID, UTIL_SEQ_RFU,
@@ -393,7 +396,7 @@ void P2PS_APP_LED_BUTTON_context_Init(void){
   P2P_Server_App_Context.ButtonControl.ButtonStatus=0x00;
 	P2P_Server_App_Context.CurrentControl.Step_Dir = UP;
 	P2P_Server_App_Context.CurrentControl.eMode = Stop;
-	P2P_Server_App_Context.CurrentControl.eState = RESET;
+	P2P_Server_App_Context.CurrentControl.eState = Reset;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Level = 0x00;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Value = 0x00;
 #endif
