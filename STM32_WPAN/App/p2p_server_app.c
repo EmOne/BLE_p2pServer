@@ -448,19 +448,28 @@ void P2PS_APP_SW1_Button_Action(void)
 /* USER CODE BEGIN FD_LOCAL_FUNCTIONS*/
 void P2PS_Send_Notification(void)
 {
- 
+	uint8_t data[16] =
+	{ };
   if(P2P_Server_App_Context.ButtonControl.ButtonStatus == 0x00){
     P2P_Server_App_Context.ButtonControl.ButtonStatus=0x01;
   } else {
     P2P_Server_App_Context.ButtonControl.ButtonStatus=0x00;
   }
-  
-   if(P2P_Server_App_Context.Notification_Status){ 
+
+	memcpy(&data[0], &P2P_Server_App_Context.ButtonControl,
+			sizeof(P2P_ButtonCharValue_t));
+	memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
+			&P2P_Server_App_Context.CurrentControl, sizeof(Current_t));
+
+	if (P2P_Server_App_Context.Notification_Status)
+	{ 
     APP_DBG_MSG("-- P2P APPLICATION SERVER  : INFORM CLIENT BUTTON 1 PUSHED \n ");
     APP_DBG_MSG(" \n\r");
 		P2PS_STM_App_Update_Char(P2P_NOTIFY_CHAR_UUID,
-				(uint8_t*) &P2P_Server_App_Context.ButtonControl,
-				sizeof(P2P_Server_App_Context_t) - 5);
+				(uint8_t*) &data,
+				sizeof(P2P_ButtonCharValue_t)
+				+ sizeof(Current_t)
+				);
    } else {
     APP_DBG_MSG("-- P2P APPLICATION SERVER : CAN'T INFORM CLIENT -  NOTIFICATION DISABLED\n "); 
    }

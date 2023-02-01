@@ -26,8 +26,8 @@ typedef enum
 
 typedef struct
 {
-	uint8_t iCurrent_Level;
 	uint16_t iCurrent_Value;
+	uint8_t iCurrent_Level;
 	uint8_t Step_Dir;
 	uint8_t eMode;
 	uint8_t eState;
