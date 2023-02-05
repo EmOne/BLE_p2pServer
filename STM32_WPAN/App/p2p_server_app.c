@@ -145,30 +145,26 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
       }
 #if(P2P_SERVER1 != 0)  
       if(pNotification->DataTransfered.pPayload[0] == 0x01){ /* end device 1 selected - may be necessary as LB Routeur informs all connection */
-			if (pNotification->DataTransfered.pPayload[1] == 0x04)
+			if (pNotification->DataTransfered.pPayload[1] == 0x05)
 			{
 				APP_DBG_MSG(
-						"-- P2P APPLICATION SERVER  : Current source/sink stop\n");
-				APP_DBG_MSG(" \n\r");
-				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_STOP_ID,
-						CFG_SCH_PRIO_0);
-			}
-			else if (pNotification->DataTransfered.pPayload[1] == 0x03)
-			{
-				APP_DBG_MSG("-- P2P APPLICATION SERVER  : Current source ON\n");
+						"-- P2P APPLICATION SERVER  : Current source enable and configure\n");
 				APP_DBG_MSG(" \n\r");
 				P2P_Server_App_Context.CurrentControl.eMode = Transmitter;
-				if (pNotification->DataTransfered.pPayload[2] == 0x02)
+				if (pNotification->DataTransfered.pPayload[2] == 0x00)
 				{
 					APP_DBG_MSG(
 							"-- P2P APPLICATION SERVER  : Current source mode PCT\n");
 					APP_DBG_MSG(" \n\r");
 					// Execute current percent process with notify
 
-					P2P_Server_App_Context.CurrentControl.iCurrent_Level =
-							pNotification->DataTransfered.pPayload[3];
+					uint16_t lvl =
+							(uint16_t) (pNotification->DataTransfered.pPayload[3]
+									<< 8
+									| pNotification->DataTransfered.pPayload[4]);
+					P2P_Server_App_Context.CurrentControl.iCurrent_Level = lvl;
 
-					UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_PCT_ID,
+					UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_PCT_ID,
 							CFG_SCH_PRIO_0);
 				}
 				else if (pNotification->DataTransfered.pPayload[2] == 0x01)
@@ -177,7 +173,8 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 							"-- P2P APPLICATION SERVER  : Current source mode Step\n");
 					APP_DBG_MSG(" \n\r");
 					// Execute current step process with notify
-					UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_STEP_ID,
+					UTIL_SEQ_SetTask(
+							1 << CFG_TASK_MODULE_CURRENT_SOURCE_RAMP_ID,
 							CFG_SCH_PRIO_0);
 
 				}
@@ -187,16 +184,36 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 							"-- P2P APPLICATION SERVER  : Current source mode Ramp\n");
 					APP_DBG_MSG(" \n\r");
 					// Execute current ramp process with notify
-					UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_RAMP_ID,
+					UTIL_SEQ_SetTask(
+							1 << CFG_TASK_MODULE_CURRENT_SOURCE_STEP_ID,
 							CFG_SCH_PRIO_0);
 				}
 			}
-			else if (pNotification->DataTransfered.pPayload[1] == 0x02)
+			else if (pNotification->DataTransfered.pPayload[1] == 0x04)
 			{
-				APP_DBG_MSG("-- P2P APPLICATION SERVER  : Current sink ON\n");
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Current source stop\n");
+				APP_DBG_MSG(" \n\r");
+				P2P_Server_App_Context.CurrentControl.eMode = Stop;
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x03)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Current sink enable\n");
 				APP_DBG_MSG(" \n\r");
 				P2P_Server_App_Context.CurrentControl.eMode = Receiver;
-				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_PROCESS_ID,
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SINK_ON_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x02)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Current sink disable\n");
+				APP_DBG_MSG(" \n\r");
+				P2P_Server_App_Context.CurrentControl.eMode = Stop;
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SINK_OFF_ID,
 						CFG_SCH_PRIO_0);
 			}
 			else if (pNotification->DataTransfered.pPayload[1] == 0x01)
@@ -206,7 +223,7 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
           APP_DBG_MSG(" \n\r");
           P2P_Server_App_Context.LedControl.Led1=0x01; /* LED1 ON */
         }
-        if(pNotification->DataTransfered.pPayload[1] == 0x00)
+			else if (pNotification->DataTransfered.pPayload[1] == 0x00)
         {
           BSP_LED_Off(LED_BLUE);
           APP_DBG_MSG("-- P2P APPLICATION SERVER 1 : LED1 OFF\n"); 
@@ -362,16 +379,18 @@ void P2PS_APP_Init(void)
 
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 
-	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_PROCESS_ID, UTIL_SEQ_RFU,
-			CurrentProcess);
-	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_PCT_ID, UTIL_SEQ_RFU,
-			CurrentPCT);
-	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_RAMP_ID, UTIL_SEQ_RFU,
-			CurrentRamp);
-	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_STEP_ID, UTIL_SEQ_RFU,
-			CurrentStep);
-	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_STOP_ID, UTIL_SEQ_RFU,
-			CurrentStop);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SINK_OFF_ID, UTIL_SEQ_RFU,
+			CurrentSinkStop);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SINK_ON_ID, UTIL_SEQ_RFU,
+			CurrentSinkStart);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_PCT_ID, UTIL_SEQ_RFU,
+			CurrentSourcePCT);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_RAMP_ID, UTIL_SEQ_RFU,
+			CurrentSourceRamp);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_STEP_ID, UTIL_SEQ_RFU,
+			CurrentSourceStep);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID, UTIL_SEQ_RFU,
+			CurrentSourceStop);
   UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, P2PS_Send_Notification );
 
   /**

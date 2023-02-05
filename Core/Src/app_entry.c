@@ -774,26 +774,41 @@ static void UartCmdExecute(void)
     exti_handle.Line = EXTI_LINE_1;
     HAL_EXTI_GenerateSWI(&exti_handle);
   }
-	else if (strcmp((char const*) CommandString, "CS1") == 0)
+	else if (strcmp((char const*) CommandString, "CR0") == 0)
 	{
-		APP_DBG_MSG("CS1 OK\n");
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_PROCESS_ID,
+		APP_DBG_MSG("CR0 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SINK_OFF_ID,
 				CFG_SCH_PRIO_0);
 	}
-	else if (strcmp((char const*) CommandString, "CS2") == 0)
+	else if (strcmp((char const*) CommandString, "CR1") == 0)
 	{
-		APP_DBG_MSG("CS2 OK\n");
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_RAMP_ID, CFG_SCH_PRIO_0);
+		APP_DBG_MSG("CR1 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SINK_ON_ID,
+				CFG_SCH_PRIO_0);
 	}
-	else if (strcmp((char const*) CommandString, "CS3") == 0)
+	else if (strcmp((char const*) CommandString, "CT0") == 0)
 	{
-		APP_DBG_MSG("CS3 OK\n");
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_STEP_ID, CFG_SCH_PRIO_0);
+		APP_DBG_MSG("CT0 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID,
+				CFG_SCH_PRIO_0);
 	}
-	else if (strcmp((char const*) CommandString, "STOP") == 0)
+	else if (strcmp((char const*) CommandString, "CT1") == 0)
 	{
-		APP_DBG_MSG("STOP OK\n");
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_STOP_ID, CFG_SCH_PRIO_0);
+		APP_DBG_MSG("CT1 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_STEP_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "CT2") == 0)
+	{
+		APP_DBG_MSG("CT2 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_RAMP_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "CT3") == 0)
+	{
+		APP_DBG_MSG("CT3 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_PCT_ID,
+				CFG_SCH_PRIO_0);
 	}
   else
   {

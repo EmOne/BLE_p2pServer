@@ -11,7 +11,7 @@
 
 typedef enum
 {
-	Receiver, Transmitter, Stop
+	Stop, Receiver, Transmitter
 } eCurrent_mode;
 
 typedef enum
@@ -27,17 +27,18 @@ typedef enum
 typedef struct
 {
 	uint16_t iCurrent_Value;
-	uint8_t iCurrent_Level;
+	uint16_t iCurrent_Level;
 	uint8_t Step_Dir;
 	uint8_t eMode;
 	uint8_t eState;
 } Current_t;
 
-void CurrentProcess(void);
-void CurrentPCT(void);
-void CurrentStep(void);
-void CurrentRamp(void);
-void CurrentStop(void);
+void CurrentSinkStart(void);
+void CurrentSinkStop(void);
+void CurrentSourcePCT(void);
+void CurrentSourceStep(void);
+void CurrentSourceRamp(void);
+void CurrentSourceStop(void);
 
 extern Current_t *hCurrent;
 
