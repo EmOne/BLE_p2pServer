@@ -69,6 +69,9 @@ typedef struct
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+uint8_t CurrentSource_Ramp_timer_Id;
+uint8_t CurrentSource_Step_timer_Id;
+uint8_t CurrentSink_timer_Id;
 Current_t *hCurrent;
 /**
  * START of Section BLE_APP_CONTEXT
@@ -83,7 +86,7 @@ static P2P_Server_App_Context_t P2P_Server_App_Context;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-static void P2PS_Send_Notification(void);
+void P2PS_Send_Notification(void);
 static void P2PS_APP_LED_BUTTON_context_Init(void);
 /* USER CODE END PFP */
 
@@ -170,7 +173,7 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 				else if (pNotification->DataTransfered.pPayload[2] == 0x01)
 				{
 					APP_DBG_MSG(
-							"-- P2P APPLICATION SERVER  : Current source mode Step\n");
+							"-- P2P APPLICATION SERVER  : Current source mode RAMP\n");
 					APP_DBG_MSG(" \n\r");
 					// Execute current step process with notify
 					UTIL_SEQ_SetTask(
@@ -178,10 +181,10 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 							CFG_SCH_PRIO_0);
 
 				}
-				else if (pNotification->DataTransfered.pPayload[2] == 0x00)
+				else if (pNotification->DataTransfered.pPayload[2] == 0x02)
 				{
 					APP_DBG_MSG(
-							"-- P2P APPLICATION SERVER  : Current source mode Ramp\n");
+							"-- P2P APPLICATION SERVER  : Current source mode STEP\n");
 					APP_DBG_MSG(" \n\r");
 					// Execute current ramp process with notify
 					UTIL_SEQ_SetTask(
@@ -393,6 +396,12 @@ void P2PS_APP_Init(void)
 			CurrentSourceStop);
   UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, P2PS_Send_Notification );
 
+//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Step_timer_Id),
+//			hw_ts_SingleShot, NULL);
+//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Ramp_timer_Id),
+//			hw_ts_SingleShot, NULL);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSink_timer_Id), hw_ts_SingleShot,
+			CurrentSinkStart);
   /**
    * Initialize LedButton Service
    */

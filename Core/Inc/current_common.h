@@ -41,5 +41,8 @@ void CurrentSourceRamp(void);
 void CurrentSourceStop(void);
 
 extern Current_t *hCurrent;
+extern uint8_t CurrentSource_Ramp_timer_Id;
+extern uint8_t CurrentSource_Step_timer_Id;
+extern uint8_t CurrentSink_timer_Id;
 
 #endif /* CURRENT_COMMON_H_ */

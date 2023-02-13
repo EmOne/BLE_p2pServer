@@ -13,25 +13,35 @@
 
 bool bCurrentSourceStepInit = false;
 bool bCurrentSourceRampInit = false;
+bool bCurrentSinkInit = false;
 
 void CurrentSinkStop(void)
 {
-	if (hCurrent->eMode == Receiver)
-		hCurrent->eMode = Stop;
+	HW_TS_Stop(CurrentSink_timer_Id);
+	BSP_LED_Off(LED_BLUE);
+
+	CS_R_HIGH();
+
+	hCurrent->eMode = Stop;
+	bCurrentSinkInit = false;
+	EN_R_LOW();
+
 }
 
 void CurrentSinkStart(void)
 {
 	uint16_t amplitude;
-	if (hCurrent->eState == Reset)
+
+	if (!bCurrentSinkInit)
 	{
+		bCurrentSinkInit = true;
 		hCurrent->eMode = Receiver;
-
-		hCurrent->eState = Busy;
-
-		CS_T_HIGH();
-
 		EN_R_HIGH();
+	}
+
+	if (hCurrent->eState == Reset && hCurrent->eMode != Stop)
+	{
+		hCurrent->eState = Busy;
 
 		CS_R_LOW();
 
@@ -39,16 +49,14 @@ void CurrentSinkStart(void)
 
 		hCurrent->iCurrent_Value = amplitude & 0x0FFF;
 
-		CS_R_HIGH();
-
-		EN_R_LOW();
-
-		HAL_Delay(100);
-
 		hCurrent->eState = Reset;
 
-		UTIL_SEQ_SetTask(1 << CFG_TASK_SW1_BUTTON_PUSHED_ID, CFG_SCH_PRIO_0);
+		HW_TS_Start(CurrentSink_timer_Id,
+				(uint32_t) (0.500 * 1000 * 1000 / CFG_TS_TICK_VAL));
 
+		BSP_LED_Toggle(LED_BLUE);
+
+		P2PS_Send_Notification();
 	}
 }
 
@@ -60,6 +68,9 @@ void CurrentSourceStop(void)
 
 	if (hCurrent->eState == Reset)
 	{
+
+		CS_R_HIGH();
+
 		hCurrent->eMode = Transmitter;
 		hCurrent->eState = Busy;
 
@@ -77,6 +88,11 @@ void CurrentSourceStop(void)
 
 		hCurrent->eState = Reset;
 		hCurrent->eMode = Stop;
+
+		if (bCurrentSinkInit)
+		{
+			CurrentSinkStart();
+		}
 	}
 }
 
@@ -85,6 +101,10 @@ void CurrentSourcePCT(void)
 	uint16_t percent_to_amplitude;
 	if (hCurrent->eState == Reset)
 	{
+		CS_R_HIGH();
+
+		CurrentSourceStop();
+
 		hCurrent->eMode = Transmitter;
 		hCurrent->eState = Busy;
 
@@ -103,6 +123,11 @@ void CurrentSourcePCT(void)
 
 		CS_T_HIGH();
 		hCurrent->eState = Reset;
+
+		if (bCurrentSinkInit)
+		{
+			CurrentSinkStart();
+		}
 	}
 }
 
@@ -110,34 +135,35 @@ void CurrentSourceStep(void)
 {
 	if (!bCurrentSourceStepInit)
 	{
+		CurrentSourceStop();
+
 		bCurrentSourceStepInit = true;
 		hCurrent->Step_Dir = UP;
 		hCurrent->iCurrent_Level = 0;
 	}
 
-	if (hCurrent->eState == Reset)
-	{
-		if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
-		{
-			hCurrent->iCurrent_Level += 100;
-		}
-
-		hCurrent->iCurrent_Level =
-				hCurrent->iCurrent_Level > 4095 ?
-						4095 : hCurrent->iCurrent_Level;
-		CurrentSourcePCT();
-
-		HAL_Delay(500);
-	}
 
 	if (hCurrent->iCurrent_Level >= 4095 || hCurrent->eMode == Stop)
 	{
-		bCurrentSourceStepInit = false;
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID,
-				CFG_SCH_PRIO_0);
+		CurrentSourceStop();
 	}
 	else
 	{
+		if (hCurrent->eState == Reset)
+		{
+			if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
+			{
+				hCurrent->iCurrent_Level += 100;
+			}
+
+			hCurrent->iCurrent_Level =
+					hCurrent->iCurrent_Level > 4095 ?
+							4095 : hCurrent->iCurrent_Level;
+			CurrentSourcePCT();
+
+			HAL_Delay(500);
+		}
+
 		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_STEP_ID,
 				CFG_SCH_PRIO_0);
 	}
@@ -148,36 +174,35 @@ void CurrentSourceRamp(void)
 {
 	if (!bCurrentSourceRampInit)
 	{
+		CurrentSourceStop();
+
 		bCurrentSourceRampInit = true;
 		hCurrent->Step_Dir = UP;
 		hCurrent->iCurrent_Level = 0;
 	}
 
-	if (hCurrent->eState == Reset)
-	{
-		if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
-			hCurrent->iCurrent_Level += 10;
-		else
-			hCurrent->Step_Dir = DOWN;
-
-		if (hCurrent->Step_Dir == DOWN && hCurrent->iCurrent_Level > 0)
-			hCurrent->iCurrent_Level -= 10;
-		else
-			hCurrent->Step_Dir = UP;
-
-		CurrentSourcePCT();
-
-		HAL_Delay(500);
-	}
-
 	if (hCurrent->eMode == Stop)
 	{
-		bCurrentSourceRampInit = false;
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID,
-				CFG_SCH_PRIO_0);
+		CurrentSourceStop();
 	}
 	else
 	{
+		if (hCurrent->eState == Reset)
+		{
+			if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
+				hCurrent->iCurrent_Level += 10;
+			else
+				hCurrent->Step_Dir = DOWN;
+
+			if (hCurrent->Step_Dir == DOWN && hCurrent->iCurrent_Level > 0)
+				hCurrent->iCurrent_Level -= 10;
+			else
+				hCurrent->Step_Dir = UP;
+
+			CurrentSourcePCT();
+
+			HAL_Delay(500);
+		}
 		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_RAMP_ID,
 				CFG_SCH_PRIO_0);
 	}
