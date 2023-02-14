@@ -69,8 +69,8 @@ void CurrentSourceStop(void)
 {
 	uint32_t percent_to_amplitude = 0;
 	uint16_t le = 0;
-	bCurrentSourceStepInit = false;
-	bCurrentSourceRampInit = false;
+//	bCurrentSourceStepInit = false;
+//	bCurrentSourceRampInit = false;
 
 	if (hCurrent->eState == Reset)
 	{
@@ -156,29 +156,29 @@ void CurrentSourceStep(void)
 	}
 
 
-	if (hCurrent->iCurrent_Level >= 4095 || hCurrent->eMode == Stop)
+	if (hCurrent->iCurrent_Level >= 2400)
 	{
+		bCurrentSourceStepInit = false;
 		CurrentSourceStop();
 	}
 	else
 	{
 		if (hCurrent->eState == Reset)
 		{
-			if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
+			if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 2400)
 			{
 				hCurrent->iCurrent_Level += 100;
 			}
 
 			hCurrent->iCurrent_Level =
-					hCurrent->iCurrent_Level > 4095 ?
-							4095 : hCurrent->iCurrent_Level;
+					hCurrent->iCurrent_Level > 2400 ?
+							2400 : hCurrent->iCurrent_Level;
 			CurrentSourcePCT();
 
-			HAL_Delay(500);
 		}
 
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_STEP_ID,
-				CFG_SCH_PRIO_0);
+		HW_TS_Start(CurrentSource_Step_timer_Id,
+				(uint32_t) (0.500 * 1000 * 1000 / CFG_TS_TICK_VAL));
 	}
 
 }
@@ -194,30 +194,31 @@ void CurrentSourceRamp(void)
 		hCurrent->iCurrent_Level = 0;
 	}
 
-	if (hCurrent->eMode == Stop)
+	if (hCurrent->eState == Reset)
 	{
-		CurrentSourceStop();
-	}
-	else
-	{
-		if (hCurrent->eState == Reset)
+		if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 2400)
+			hCurrent->iCurrent_Level += 100;
+		else
+			hCurrent->Step_Dir = DOWN;
+
+		if (hCurrent->Step_Dir == DOWN && hCurrent->iCurrent_Level > 0)
 		{
-			if (hCurrent->Step_Dir == UP && hCurrent->iCurrent_Level < 4095)
-				hCurrent->iCurrent_Level += 10;
-			else
-				hCurrent->Step_Dir = DOWN;
-
-			if (hCurrent->Step_Dir == DOWN && hCurrent->iCurrent_Level > 0)
-				hCurrent->iCurrent_Level -= 10;
-			else
-				hCurrent->Step_Dir = UP;
-
-			CurrentSourcePCT();
-
-			HAL_Delay(500);
+			hCurrent->iCurrent_Level -= 100;
 		}
-		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_RAMP_ID,
-				CFG_SCH_PRIO_0);
+		
+		if (hCurrent->Step_Dir == DOWN && hCurrent->iCurrent_Level <= 0)
+		{
+			bCurrentSourceRampInit = false;
+			hCurrent->Step_Dir = UP;
+			return;
+		}
+
+		CurrentSourcePCT();
+		HW_TS_Start(CurrentSource_Ramp_timer_Id,
+				(uint32_t) (0.500 * 1000 * 1000 / CFG_TS_TICK_VAL));
+		
 	}
+
+
 
 }

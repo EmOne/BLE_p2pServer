@@ -396,10 +396,10 @@ void P2PS_APP_Init(void)
 			CurrentSourceStop);
   UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, P2PS_Send_Notification );
 
-//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Step_timer_Id),
-//			hw_ts_SingleShot, NULL);
-//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Ramp_timer_Id),
-//			hw_ts_SingleShot, NULL);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Step_timer_Id),
+			hw_ts_SingleShot, CurrentSourceStep);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Ramp_timer_Id),
+			hw_ts_SingleShot, CurrentSourceRamp);
 	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSink_timer_Id), hw_ts_SingleShot,
 			CurrentSinkStart);
   /**
