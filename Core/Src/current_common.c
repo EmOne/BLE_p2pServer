@@ -52,7 +52,8 @@ void CurrentSinkStart(void)
 		le = (amplitude >> 8) & 0xff;
 		le |= (amplitude & 0xff) << 8;
 
-		hCurrent->iCurrent_Value = (le) / 2;
+		hCurrent->iCurrent_Value = (uint16_t) ((((float) le / 4095.0f) / 2.048f)
+				* 2400.0f);
 
 		hCurrent->eState = Reset;
 
@@ -123,7 +124,7 @@ void CurrentSourcePCT(void)
 //				(hCurrent->iCurrent_Level < 0) ? 0 : hCurrent->iCurrent_Level;
 		percent_to_amplitude |= (1 << 12); //Enable
 		percent_to_amplitude &= ~(1 << 13); //Gain 1:2x 0:1x
-		percent_to_amplitude &= ~(1 << 14); //Buffering
+		percent_to_amplitude |= (1 << 14); //Buffering
 		percent_to_amplitude &= ~(1 << 15);  //Channel A:0 B:1
 		percent_to_amplitude |= hCurrent->iCurrent_Level & 0x0FFF; //((hCurrent->iCurrent_Level * 4095) / 100) //12 Bits Interpolation
 
