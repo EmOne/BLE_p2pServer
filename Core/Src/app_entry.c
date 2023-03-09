@@ -810,6 +810,42 @@ static void UartCmdExecute(void)
 		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_PCT_ID,
 				CFG_SCH_PRIO_0);
 	}
+	else if (strcmp((char const*) CommandString, "VT0") == 0)
+	{
+		APP_DBG_MSG("VT0 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_OFF_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "VT1") == 0)
+	{
+		APP_DBG_MSG("VT1 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "VB0") == 0)
+	{
+		APP_DBG_MSG("VB0 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_OFF_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "VB1") == 0)
+	{
+		APP_DBG_MSG("VB1 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_ON_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "TP0") == 0)
+	{
+		APP_DBG_MSG("TP0 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_OFF_ID,
+				CFG_SCH_PRIO_0);
+	}
+	else if (strcmp((char const*) CommandString, "TP1") == 0)
+	{
+		APP_DBG_MSG("TP1 OK\n");
+		UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_ON_ID,
+				CFG_SCH_PRIO_0);
+	}
   else
   {
     APP_DBG_MSG("NOT RECOGNIZED COMMAND : %s\n", CommandString);

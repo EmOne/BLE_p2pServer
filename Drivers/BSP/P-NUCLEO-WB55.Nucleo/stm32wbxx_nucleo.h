@@ -246,6 +246,32 @@ typedef enum
 #define NUCLEO_ADCx_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOA_CLK_ENABLE()
 #define NUCLEO_ADCx_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOA_CLK_DISABLE()
 
+/*##################### I2C3 ###################################*/
+/**
+ * @brief  I2C Interface pins
+ *         used to device
+ */
+#define NUCLEO_I2Cx                                 I2C3
+#define NUCLEO_I2Cx_CLK_ENABLE()                    __HAL_RCC_I2C_CLK_ENABLE()
+
+#define NUCLEO_I2Cx_SCL_GPIO_PORT                       GPIOC
+#define NUCLEO_I2Cx_SCL_GPIO_PIN                        GPIO_PIN_0
+#define NUCLEO_I2Cx_SCL_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOC_CLK_ENABLE()
+#define NUCLEO_I2Cx_SCL_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOC_CLK_DISABLE()
+
+#define NUCLEO_I2Cx_SDA_GPIO_PORT                       GPIOC
+#define NUCLEO_I2Cx_SDA_GPIO_PIN                        GPIO_PIN_1
+#define NUCLEO_I2Cx_SDA_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOC_CLK_ENABLE()
+#define NUCLEO_I2Cx_SDA_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOC_CLK_DISABLE()
+/**
+ * @brief I2C devices settings
+ */
+/* Timing register value is computed with the STM32CubeMX Tool,
+ * Fast Mode @400kHz with I2CCLK = 64 MHz,
+ * rise time = 100ns, fall time = 10ns
+ * Timing Value = (uint32_t)0x00C0216C
+ */
+#define I2C_TIMING                     0x00C0216C
 /**
   * @}
   */

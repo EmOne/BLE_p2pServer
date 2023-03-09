@@ -29,6 +29,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "current_common.h"
+#include "voltage_common.h"
+#include "vibrate_common.h"
+#include "temperature_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,10 +52,9 @@ typedef struct
   P2P_LedCharValue_t    LedControl;
 	P2P_ButtonCharValue_t ButtonControl; //TODO: Apply to Digital sensor
 	Current_t CurrentControl;
-// Voltage_t VoltageControl;
-	// Ratio_t RatioControl;
-	// Temperature_t TemperatureControl;
-	// Vibrate_t VibrationControl;
+	Voltage_t VoltageControl;
+	Temperature_t TemperatureControl;
+	Vibrate_t VibrationControl;
   uint16_t              ConnectionHandle;
 } P2P_Server_App_Context_t;
 /* USER CODE END PTD */
@@ -148,7 +150,63 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
       }
 #if(P2P_SERVER1 != 0)  
       if(pNotification->DataTransfered.pPayload[0] == 0x01){ /* end device 1 selected - may be necessary as LB Routeur informs all connection */
-			if (pNotification->DataTransfered.pPayload[1] == 0x05)
+			if (pNotification->DataTransfered.pPayload[1] == 0x0B)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Temperature sink enable\n");
+				APP_DBG_MSG(" \n\r");
+				//TODO: NTC/PT100 Init and Start read sensor
+
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_ON_ID,
+						CFG_SCH_PRIO_0);
+
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x0A)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Temperature sink disable\n");
+				APP_DBG_MSG(" \n\r");
+				//TODO: NTC/PT100 Deinit
+
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_OFF_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x09)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Vibrate sink enable\n");
+				APP_DBG_MSG(" \n\r");
+
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_ON_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x08)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Vibrate sink disable\n");
+				APP_DBG_MSG(" \n\r");
+
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_OFF_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x07)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Voltage sink enable\n");
+				APP_DBG_MSG(" \n\r");
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x06)
+			{
+				APP_DBG_MSG(
+						"-- P2P APPLICATION SERVER  : Voltage sink disable\n");
+				APP_DBG_MSG(" \n\r");
+
+				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_OFF_ID,
+						CFG_SCH_PRIO_0);
+			}
+			else if (pNotification->DataTransfered.pPayload[1] == 0x05)
 			{
 				APP_DBG_MSG(
 						"-- P2P APPLICATION SERVER  : Current source enable and configure\n");
