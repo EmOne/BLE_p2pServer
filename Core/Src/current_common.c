@@ -4,8 +4,6 @@
  *  Created on: Jan 20, 2023
  *      Author: anol_
  */
-#include "stdbool.h"
-#include "stdint.h"
 
 #include "main.h"
 #include "stm32_seq.h"
@@ -14,6 +12,40 @@
 bool bCurrentSourceStepInit = false;
 bool bCurrentSourceRampInit = false;
 bool bCurrentSinkInit = false;
+
+/* Current IO function */
+
+void CurrentSinkInit(void)
+{
+	GPIO_InitTypeDef gpioinitstruct =
+	{ 0 };
+
+	/* CS_GPIO and DC_GPIO Periph clock enable */
+	CS_R_GPIO_CLK_ENABLE();
+
+	/* Configure CS_PIN pin: CS pin */
+	gpioinitstruct.Pin = CS_R_Pin;
+	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioinitstruct.Pull = GPIO_NOPULL;
+	gpioinitstruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(CS_R_Port, &gpioinitstruct);
+	gpioinitstruct.Pin = EN_R_Pin;
+	HAL_GPIO_Init(EN_R_Port, &gpioinitstruct);
+
+	EN_R_LOW();
+
+	/* chip select high */
+	CS_R_HIGH();
+
+	COMMON_IO_Init();
+
+}
+
+void CurrentSinkDeInit(void)
+{
+	HAL_GPIO_DeInit(CS_R_Port, CS_R_Pin);
+	HAL_GPIO_Init(EN_R_Port, EN_R_Pin);
+}
 
 void CurrentSinkStop(void)
 {
@@ -26,6 +58,7 @@ void CurrentSinkStop(void)
 	bCurrentSinkInit = false;
 	EN_R_LOW();
 
+	CurrentSinkDeInit();
 }
 
 void CurrentSinkStart(void)
@@ -36,6 +69,8 @@ void CurrentSinkStart(void)
 	{
 		bCurrentSinkInit = true;
 		hCurrent->eMode = Receiver;
+		CurrentSinkInit();
+
 		EN_R_HIGH();
 	}
 
@@ -45,7 +80,7 @@ void CurrentSinkStart(void)
 
 		CS_R_LOW();
 
-		CURENT_IO_Read(&amplitude);
+		COMMON_IO_Read(&amplitude);
 
 		CS_R_HIGH();
 
@@ -64,6 +99,32 @@ void CurrentSinkStart(void)
 
 		P2PS_Send_Notification();
 	}
+}
+
+void CurrentSourceInit(void)
+{
+
+	GPIO_InitTypeDef gpioinitstruct =
+	{ 0 };
+
+	/* CS_GPIO and DC_GPIO Periph clock enable */
+	CS_T_GPIO_CLK_ENABLE();
+
+	/* Configure CS_PIN pin: CS pin */
+	gpioinitstruct.Pin = CS_T_Pin;
+	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioinitstruct.Pull = GPIO_NOPULL;
+	gpioinitstruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(CS_T_Port, &gpioinitstruct);
+
+	/* chip select high */
+	CS_T_HIGH();
+
+	COMMON_IO_Init();
+}
+void CurrentSourceDeInit(void)
+{
+	HAL_GPIO_Init(CS_T_Port, CS_T_Pin);
 }
 
 void CurrentSourceStop(void)
@@ -92,12 +153,14 @@ void CurrentSourceStop(void)
 
 		CS_T_LOW();
 
-		CURENT_IO_Write(le);
+		COMMON_IO_Write(le);
 
 		CS_T_HIGH();
 
 		hCurrent->eState = Reset;
 		hCurrent->eMode = Stop;
+
+		CurrentSourceDeInit();
 
 		if (bCurrentSinkInit)
 		{
@@ -119,6 +182,7 @@ void CurrentSourcePCT(void)
 		hCurrent->eMode = Transmitter;
 		hCurrent->eState = Busy;
 
+		CurrentSourceInit();
 //		hCurrent->iCurrent_Level =
 //				(hCurrent->iCurrent_Level > 100) ? 100 :
 //				(hCurrent->iCurrent_Level < 0) ? 0 : hCurrent->iCurrent_Level;
@@ -133,7 +197,7 @@ void CurrentSourcePCT(void)
 
 		CS_T_LOW();
 
-		CURENT_IO_Write(le);
+		COMMON_IO_Write(le);
 
 		CS_T_HIGH();
 		hCurrent->eState = Reset;

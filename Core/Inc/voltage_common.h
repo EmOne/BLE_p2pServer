@@ -8,6 +8,8 @@
 #ifndef VOLTAGE_COMMON_H_
 #define VOLTAGE_COMMON_H_
 
+#include "stdbool.h"
+#include "stdint.h"
 
 typedef enum
 {
@@ -27,10 +29,14 @@ typedef struct
 	uint8_t eState;
 } Voltage_t;
 
+void VoltageSinkInit(void);
+void VoltageSinkDeInit(void);
+
 void VoltageSinkStart(void);
 void VoltageSinkStop(void);
 
 extern Voltage_t *hVoltage;
 extern uint8_t VoltageSink_timer_Id;
+extern bool bVoltageSinkInit;
 
 #endif /* VOLTAGE_COMMON_H_ */

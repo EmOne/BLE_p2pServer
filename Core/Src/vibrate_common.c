@@ -4,8 +4,6 @@
  *  Created on: Jan 20, 2023
  *      Author: anol_
  */
-#include "stdbool.h"
-#include "stdint.h"
 
 #include "main.h"
 #include "stm32_seq.h"
@@ -37,7 +35,7 @@ void VibrateSinkStart(void)
 //	{
 //		hVibrate->eState = Busy;
 //
-//		CURENT_IO_Read(&amplitude);
+//		COMMON_IO_Read(&amplitude);
 //
 //		le = (amplitude >> 8) & 0xff;
 //		le |= (amplitude & 0xff) << 8;

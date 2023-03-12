@@ -774,13 +774,13 @@ void LCD_Delay(uint32_t Delay)
   HAL_Delay(Delay);
 }
 
-void CURRENT_IO_Init(void)
+void COMMON_IO_Init(void)
 {
 	/* SPI Config */
 	SPIx_Init();
 }
 
-void CURENT_IO_Read(uint16_t *pData)
+void COMMON_IO_Read(uint16_t *pData)
 {
 	HAL_StatusTypeDef status = HAL_OK;
 	status = HAL_SPI_Receive(&hnucleo_Spi, pData, 2, hnucleo_SpixTimeout);
@@ -793,7 +793,7 @@ void CURENT_IO_Read(uint16_t *pData)
 	}
 }
 
-void CURENT_IO_Write(uint16_t setting)
+void COMMON_IO_Write(uint16_t setting)
 {
 	HAL_StatusTypeDef status = HAL_OK;
 	status = HAL_SPI_Transmit(&hnucleo_Spi, &setting, 2, hnucleo_SpixTimeout);

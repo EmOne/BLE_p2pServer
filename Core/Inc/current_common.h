@@ -8,6 +8,8 @@
 #ifndef CURRENT_COMMON_H_
 #define CURRENT_COMMON_H_
 
+#include "stdbool.h"
+#include "stdint.h"
 
 typedef enum
 {
@@ -33,8 +35,13 @@ typedef struct
 	uint8_t eState;
 } Current_t;
 
+void CurrentSinkInit(void);
+void CurrentSinkDeInit(void);
 void CurrentSinkStart(void);
 void CurrentSinkStop(void);
+
+void CurrentSourceInit(void);
+void CurrentSourceDeInit(void);
 void CurrentSourcePCT(void);
 void CurrentSourceStep(void);
 void CurrentSourceRamp(void);
@@ -44,5 +51,9 @@ extern Current_t *hCurrent;
 extern uint8_t CurrentSource_Ramp_timer_Id;
 extern uint8_t CurrentSource_Step_timer_Id;
 extern uint8_t CurrentSink_timer_Id;
+
+extern bool bCurrentSourceStepInit;
+extern bool bCurrentSourceRampInit;
+extern bool bCurrentSinkInit;
 
 #endif /* CURRENT_COMMON_H_ */

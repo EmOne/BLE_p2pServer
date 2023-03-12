@@ -8,6 +8,8 @@
 #ifndef VIBRATE_COMMON_H_
 #define VIBRATE_COMMON_H_
 
+#include "stdbool.h"
+#include "stdint.h"
 
 typedef enum
 {
@@ -32,5 +34,6 @@ void VibrateSinkStop(void);
 
 extern Vibrate_t *hVibrate;
 extern uint8_t VibrateSink_timer_Id;
+extern bool bVibrateSinkInit;
 
 #endif /* VIBRATE_COMMON_H_ */

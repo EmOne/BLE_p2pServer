@@ -68,6 +68,8 @@ void DMA2_Channel4_IRQHandler(void);
 void PUSH_BUTTON_SW1_EXTI_IRQHandler(void);
 void PUSH_BUTTON_SW2_EXTI_IRQHandler(void);
 void PUSH_BUTTON_SW3_EXTI_IRQHandler(void);
+void EXTI9_5_IRQHandler(void);
+void EXTI15_10_IRQHandler(void);
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

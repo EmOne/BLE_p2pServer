@@ -8,6 +8,8 @@
 #ifndef TEMPERATURE_COMMON_H_
 #define TEMPERATURE_COMMON_H_
 
+#include "stdbool.h"
+#include "stdint.h"
 
 typedef enum
 {
@@ -17,6 +19,7 @@ typedef enum
 typedef enum
 {
 	temperatureDRDY,
+	temperatureUNKNOWN
 } eTemperature_state;
 
 typedef struct
@@ -27,10 +30,15 @@ typedef struct
 	uint8_t eState;
 } Temperature_t;
 
+void TemperatureSinkInit(void);
+void TemperatureSinkDeInit(void);
 void TemperatureSinkStart(void);
 void TemperatureSinkStop(void);
+void TemperatureSink_IRQHandler(void);
 
 extern Temperature_t *hTemperature;
 extern uint8_t TemperatureSink_timer_Id;
+
+extern bool bTemperatureSinkInit;
 
 #endif /* TEMPERATURE_COMMON_H_ */

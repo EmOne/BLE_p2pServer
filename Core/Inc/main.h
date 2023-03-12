@@ -59,9 +59,9 @@ void   MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN EFP */
 /* Current IO function */
-void CURENT_IO_Init(void);
-void CURENT_IO_Read(uint16_t *pData);
-void CURENT_IO_Write(uint16_t setting);
+void COMMON_IO_Init(void);
+void COMMON_IO_Read(uint16_t *pData);
+void COMMON_IO_Write(uint16_t setting);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

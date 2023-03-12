@@ -93,8 +93,6 @@ static void Init_Rtc(void);
 /* USER CODE BEGIN PFP */
 static void Led_Init( void );
 static void Button_Init( void );
-static void CurrentSource_Init(void);
-static void CurrentSink_Init(void);
 
 /* Section specific to button management using UART */
 static void RxUART_Init(void);
@@ -156,9 +154,6 @@ void MX_APPE_Init(void)
    * This system event is received with APPE_SysUserEvtRx()
    */
 /* USER CODE BEGIN APPE_Init_2 */
-	CURRENT_IO_Init();
-	CurrentSource_Init();
-	CurrentSink_Init();
 
 /* USER CODE END APPE_Init_2 */
    return;
@@ -568,49 +563,7 @@ static void Button_Init( void )
   return;
 }
 
-/* Current IO function */
 
-static void CurrentSource_Init(void)
-{
-	GPIO_InitTypeDef gpioinitstruct =
-	{ 0 };
-
-	/* CS_GPIO and DC_GPIO Periph clock enable */
-	CS_T_GPIO_CLK_ENABLE();
-
-	/* Configure CS_PIN pin: CS pin */
-	gpioinitstruct.Pin = CS_T_Pin;
-	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioinitstruct.Pull = GPIO_NOPULL;
-	gpioinitstruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(CS_T_Port, &gpioinitstruct);
-
-	/* chip select high */
-	CS_T_HIGH();
-
-}
-static void CurrentSink_Init(void)
-{
-	GPIO_InitTypeDef gpioinitstruct =
-	{ 0 };
-
-	/* CS_GPIO and DC_GPIO Periph clock enable */
-	CS_R_GPIO_CLK_ENABLE();
-
-	/* Configure CS_PIN pin: CS pin */
-	gpioinitstruct.Pin = CS_R_Pin;
-	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioinitstruct.Pull = GPIO_NOPULL;
-	gpioinitstruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(CS_R_Port, &gpioinitstruct);
-	gpioinitstruct.Pin = EN_R_Pin;
-	HAL_GPIO_Init(EN_R_Port, &gpioinitstruct);
-
-	EN_R_LOW();
-
-	/* chip select high */
-	CS_R_HIGH();
-}
 
 /* USER CODE END FD_LOCAL_FUNCTIONS */
 
@@ -715,6 +668,13 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
     case BUTTON_SW3_PIN:
       APP_BLE_Key_Button3_Action();
       break;
+
+	case GPIO_PIN_6:
+		TemperatureSink_IRQHandler();
+		break;
+	case GPIO_PIN_10:
+		TemperatureSink_IRQHandler();
+		break;
 
     default:
       break;

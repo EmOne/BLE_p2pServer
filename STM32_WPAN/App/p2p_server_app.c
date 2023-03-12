@@ -74,7 +74,13 @@ typedef struct
 uint8_t CurrentSource_Ramp_timer_Id;
 uint8_t CurrentSource_Step_timer_Id;
 uint8_t CurrentSink_timer_Id;
+uint8_t VoltageSink_timer_Id;
+uint8_t VibrateSink_timer_Id;
+uint8_t TemperatureSink_timer_Id;
 Current_t *hCurrent;
+Voltage_t *hVoltage;
+Vibrate_t *hVibrate;
+Temperature_t *hTemperature;
 /**
  * START of Section BLE_APP_CONTEXT
  */
@@ -438,6 +444,15 @@ void P2PS_APP_Init(void)
 	if (hCurrent == NULL)
 		hCurrent = &P2P_Server_App_Context.CurrentControl;
 
+//	if (hVoltage == NULL)
+//		hVoltage = &P2P_Server_App_Context.VoltageControl;
+//
+//	if (hVibrate == NULL)
+//		hVibrate = &P2P_Server_App_Context.VibrationControl;
+
+	if (hTemperature == NULL)
+		hTemperature = &P2P_Server_App_Context.TemperatureControl;
+
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SINK_OFF_ID, UTIL_SEQ_RFU,
@@ -452,7 +467,20 @@ void P2PS_APP_Init(void)
 			CurrentSourceStep);
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID, UTIL_SEQ_RFU,
 			CurrentSourceStop);
-  UTIL_SEQ_RegTask( 1<< CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU, P2PS_Send_Notification );
+//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_OFF_ID, UTIL_SEQ_RFU,
+//			VoltageSinkStop);
+//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID, UTIL_SEQ_RFU,
+//			VoltageSinkStart);
+//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_OFF_ID, UTIL_SEQ_RFU,
+//			VibrateSinkStop);
+//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_ON_ID, UTIL_SEQ_RFU,
+//			VibrateSinkStart);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_OFF_ID, UTIL_SEQ_RFU,
+			TemperatureSinkStop);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_ON_ID, UTIL_SEQ_RFU,
+			TemperatureSinkStart);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_SW1_BUTTON_PUSHED_ID, UTIL_SEQ_RFU,
+			P2PS_Send_Notification);
 
 	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSource_Step_timer_Id),
 			hw_ts_SingleShot, CurrentSourceStep);
@@ -460,6 +488,13 @@ void P2PS_APP_Init(void)
 			hw_ts_SingleShot, CurrentSourceRamp);
 	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSink_timer_Id), hw_ts_SingleShot,
 			CurrentSinkStart);
+//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VibrateSink_timer_Id), hw_ts_SingleShot,
+//			VibrateSinkStart);
+//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VoltageSink_timer_Id), hw_ts_SingleShot,
+//			VoltageSinkStart);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(TemperatureSink_timer_Id),
+			hw_ts_SingleShot,
+			TemperatureSinkStart);
   /**
    * Initialize LedButton Service
    */
@@ -485,6 +520,10 @@ void P2PS_APP_LED_BUTTON_context_Init(void){
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Level = 0x00;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Value = 0x00;
+	P2P_Server_App_Context.TemperatureControl.eMode = temperatureStop;
+	P2P_Server_App_Context.TemperatureControl.eState = temperatureDRDY;
+	P2P_Server_App_Context.TemperatureControl.iTemperature_Level = 0x00;
+	P2P_Server_App_Context.TemperatureControl.iTemperature_Value = 0x00;
 #endif
 #if(P2P_SERVER2 != 0)
   P2P_Server_App_Context.LedControl.Device_Led_Selection=0x02; /* Device2 */
@@ -536,6 +575,7 @@ void P2PS_Send_Notification(void)
 {
 	uint8_t data[16] =
 	{ };
+	uint8_t len = 0;
   if(P2P_Server_App_Context.ButtonControl.ButtonStatus == 0x00){
     P2P_Server_App_Context.ButtonControl.ButtonStatus=0x01;
   } else {
@@ -544,8 +584,35 @@ void P2PS_Send_Notification(void)
 
 	memcpy(&data[0], &P2P_Server_App_Context.ButtonControl,
 			sizeof(P2P_ButtonCharValue_t));
-	memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
-			&P2P_Server_App_Context.CurrentControl, sizeof(Current_t));
+	if (bCurrentSinkInit || bCurrentSourceStepInit || bCurrentSourceRampInit)
+	{
+		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
+				&P2P_Server_App_Context.CurrentControl, sizeof(Current_t));
+		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Current_t);
+	}
+	else if (bTemperatureSinkInit)
+	{
+		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
+				&P2P_Server_App_Context.TemperatureControl,
+				sizeof(Temperature_t));
+		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Temperature_t);
+	}
+	else if (bVoltageSinkInit)
+	{
+		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
+				&P2P_Server_App_Context.VoltageControl, sizeof(Voltage_t));
+		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Voltage_t);
+	}
+	else if (bVibrateSinkInit)
+	{
+		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
+				&P2P_Server_App_Context.VibrationControl, sizeof(Vibrate_t));
+		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Vibrate_t);
+	}
+	else
+	{
+		len = sizeof(P2P_ButtonCharValue_t);
+	}
 
 	if (P2P_Server_App_Context.Notification_Status)
 	{ 
@@ -553,8 +620,7 @@ void P2PS_Send_Notification(void)
     APP_DBG_MSG(" \n\r");
 		P2PS_STM_App_Update_Char(P2P_NOTIFY_CHAR_UUID,
 				(uint8_t*) &data,
-				sizeof(P2P_ButtonCharValue_t)
-				+ sizeof(Current_t)
+				len
 				);
    } else {
     APP_DBG_MSG("-- P2P APPLICATION SERVER : CAN'T INFORM CLIENT -  NOTIFICATION DISABLED\n "); 

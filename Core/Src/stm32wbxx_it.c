@@ -351,4 +351,14 @@ void PUSH_BUTTON_SW3_EXTI_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(BUTTON_SW3_PIN);
 }
 
+void EXTI9_5_IRQHandler(void)
+{
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+}
+
 /* USER CODE END 1 */
