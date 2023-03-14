@@ -80,7 +80,7 @@ void CurrentSinkStart(void)
 
 		CS_R_LOW();
 
-		COMMON_IO_Read(&amplitude);
+		COMMON_IO_Read(&amplitude, 2);
 
 		CS_R_HIGH();
 
@@ -153,7 +153,7 @@ void CurrentSourceStop(void)
 
 		CS_T_LOW();
 
-		COMMON_IO_Write(le);
+		COMMON_IO_Write(&le, 2);
 
 		CS_T_HIGH();
 
@@ -197,7 +197,7 @@ void CurrentSourcePCT(void)
 
 		CS_T_LOW();
 
-		COMMON_IO_Write(le);
+		COMMON_IO_Write(&le, 2);
 
 		CS_T_HIGH();
 		hCurrent->eState = Reset;

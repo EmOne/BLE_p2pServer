@@ -22,10 +22,17 @@ typedef enum
 	temperatureUNKNOWN
 } eTemperature_state;
 
+typedef enum
+{
+	temperature3W, temperature2_4W
+} eTemperature_wire;
+
+
 typedef struct
 {
 	uint16_t iTemperature_Value;
 	uint16_t iTemperature_Level;
+	uint8_t eWire;
 	uint8_t eMode;
 	uint8_t eState;
 } Temperature_t;

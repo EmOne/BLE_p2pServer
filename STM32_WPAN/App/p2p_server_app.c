@@ -162,7 +162,23 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 						"-- P2P APPLICATION SERVER  : Temperature sink enable\n");
 				APP_DBG_MSG(" \n\r");
 				//TODO: NTC/PT100 Init and Start read sensor
+				if (pNotification->DataTransfered.pPayload[2] == 0x01)
+				{
+					APP_DBG_MSG(
+							"-- P2P APPLICATION SERVER  : Temperature 2/4 Wire\n");
+					APP_DBG_MSG(" \n\r");
 
+					hTemperature->eWire = 0x01;
+
+				}
+				else if (pNotification->DataTransfered.pPayload[2] == 0x00)
+				{
+					APP_DBG_MSG(
+							"-- P2P APPLICATION SERVER  : Temperature 3 Wire\n");
+					APP_DBG_MSG(" \n\r");
+					hTemperature->eWire = 0x00;
+				}
+				bTemperatureSinkInit = false;
 				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_ON_ID,
 						CFG_SCH_PRIO_0);
 

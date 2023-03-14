@@ -780,10 +780,11 @@ void COMMON_IO_Init(void)
 	SPIx_Init();
 }
 
-void COMMON_IO_Read(uint16_t *pData)
+void COMMON_IO_Read(uint8_t *pData, uint16_t len)
 {
 	HAL_StatusTypeDef status = HAL_OK;
-	status = HAL_SPI_Receive(&hnucleo_Spi, pData, 2, hnucleo_SpixTimeout);
+	status = HAL_SPI_Receive(&hnucleo_Spi, pData, len,
+			hnucleo_SpixTimeout);
 
 	/* Check the communication status */
 	if (status != HAL_OK)
@@ -793,10 +794,11 @@ void COMMON_IO_Read(uint16_t *pData)
 	}
 }
 
-void COMMON_IO_Write(uint16_t setting)
+void COMMON_IO_Write(uint8_t *pData, uint16_t len)
 {
 	HAL_StatusTypeDef status = HAL_OK;
-	status = HAL_SPI_Transmit(&hnucleo_Spi, &setting, 2, hnucleo_SpixTimeout);
+	status = HAL_SPI_Transmit(&hnucleo_Spi, pData, len,
+			hnucleo_SpixTimeout);
 
 	/* Check the communication status */
 	if (status != HAL_OK)

@@ -60,8 +60,8 @@ void   MX_USART1_UART_Init(void);
 /* USER CODE BEGIN EFP */
 /* Current IO function */
 void COMMON_IO_Init(void);
-void COMMON_IO_Read(uint16_t *pData);
-void COMMON_IO_Write(uint16_t setting);
+void COMMON_IO_Read(uint8_t *pData, uint16_t len);
+void COMMON_IO_Write(uint8_t *pData, uint16_t len);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -83,11 +83,11 @@ void COMMON_IO_Write(uint16_t setting);
 #define CS_R_LOW()      HAL_GPIO_WritePin(CS_R_Port, CS_R_Pin, GPIO_PIN_RESET)
 #define CS_R_HIGH()     HAL_GPIO_WritePin(CS_R_Port, CS_R_Pin, GPIO_PIN_SET)
 
-#define EN_R_Port GPIOA
+#define EN_R_Port	GPIOA
 #define EN_R_Pin	GPIO_PIN_10
 #define EN_R_GPIO_CLK_ENABLE()                  __HAL_RCC_GPIOA_CLK_ENABLE()
 #define EN_R_GPIO_CLK_DISABLE()                 __HAL_RCC_GPIOA_CLK_DISABLE()
-
+#define EN_R_IRQn	EXTI15_10_IRQn
 #define EN_R_LOW()      HAL_GPIO_WritePin(EN_R_Port, EN_R_Pin, GPIO_PIN_RESET)
 #define EN_R_HIGH()     HAL_GPIO_WritePin(EN_R_Port, EN_R_Pin, GPIO_PIN_SET)
 /* USER CODE END Private defines */
