@@ -33,6 +33,10 @@ void TemperatureSinkInit(void)
 	gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(T_INT_PORT, &gpioinitstruct);
 
+	gpioinitstruct.Pin = CS_T_Pin;
+	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(CS_T_Port, &gpioinitstruct);
+
 	/* Enable and set Button EXTI Interrupt to the lowest priority */
 	HAL_NVIC_SetPriority(T_INT_IRQn, 0x0F, 0x00);
 	HAL_NVIC_EnableIRQ(T_INT_IRQn);
@@ -146,7 +150,7 @@ void TemperatureSink_IRQHandler(void)
 	
 	hTemperature->iTemperature_Value =
 			(uint16_t) ((((float) (le / 2.0f) / 32.0f)
-			- 256.0f) * 100.0f);
+			- 256.0f));
 
 	BSP_LED_Toggle(LED_BLUE);
 	P2PS_Send_Notification();
