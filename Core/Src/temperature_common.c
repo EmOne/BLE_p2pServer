@@ -22,7 +22,7 @@ bool bTemperatureSinkInit = false;
 #define T_INT_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE() //EN_R_GPIO_CLK_ENABLE()
 #endif
 
-__IO Temperature_t hTemp;
+Temperature_t hTemp;
 
 void TemperatureSinkInit(void)
 {
@@ -66,7 +66,7 @@ void TemperatureSinkStop(void)
 
 void TemperatureSinkStart(void)
 {
-	uint8_t wReg[2] =
+	uint8_t wReg[5] =
 	{ 0x80, 0x00 };
 	uint8_t config = 0;
 
@@ -85,12 +85,14 @@ void TemperatureSinkStart(void)
 
 		config |= (1 << 7);	//D7 V bias
 		config |= (1 << 6);	//D6 Conversion mode 0: Normally off, 1: Auto
-		config |= (1 << 5);	//D5 1: 1-Shot
+//		config |= (1 << 5);	//D5 1: 1-Shot
 		config |= (hTemperature->eWire << 4);	//D4 0: 3 Wire, 1: 2/4 Wire
 		//		config |= (3 << 2);	//D2-D3 Fault detect cycle control
 		config |= (1 << 1);	//D1 Fault status clear
 		//		config |= (1 << 0);	//D0 Filter 0: 60 Hz, 1: 50 Hz
 		//		config <<= 8;
+
+		wReg[0] = 0x80;
 		wReg[1] = config;
 
 		CS_T_LOW();
@@ -99,6 +101,24 @@ void TemperatureSinkStart(void)
 
 		CS_T_HIGH();
 
+		//Setting fault threshold
+		wReg[0] = 0x03;
+		wReg[1] = 0xfe;
+		wReg[2] = 0xfe;
+		wReg[3] = 0x00;
+		wReg[4] = 0x00;
+		CS_T_LOW();
+		COMMON_IO_Write(wReg, 5);
+		CS_T_HIGH();
+
+
+		if (HAL_GPIO_ReadPin(T_INT_PORT, T_INT_PIN) == GPIO_PIN_RESET)
+		{
+			TemperatureSink_IRQHandler();
+		}
+	}
+//	else
+	{
 		wReg[0] = 0x00;
 		HAL_Delay(100);
 		CS_T_LOW();
@@ -106,11 +126,6 @@ void TemperatureSinkStart(void)
 		COMMON_IO_Read(wReg, 2);
 
 		CS_T_HIGH();
-
-		if (HAL_GPIO_ReadPin(T_INT_PORT, T_INT_PIN) == GPIO_PIN_RESET)
-		{
-			TemperatureSink_IRQHandler();
-		}
 	}
 
 
@@ -140,36 +155,41 @@ void TemperatureSinkStart(void)
 
 void TemperatureSink_IRQHandler(void)
 {
-	uint16_t amplitude;
+	uint8_t rReg[3] = { 0x00 };
 	uint16_t le = 0;
 	bool bFault = false;
 
-	amplitude = 0x0001;
+	rReg[0] = 0x01;
 	CS_T_LOW();
 
-	COMMON_IO_Read(&amplitude, 2);
+	COMMON_IO_Read(rReg, 3);
 
 	CS_T_HIGH();
 
-	le |= ((amplitude) & 0xff00);
+	le = (uint16_t)rReg[1] << 8 | rReg[2];
 
 	HAL_Delay(10);
 
-	amplitude = 0x0002;
-	CS_T_LOW();
-
-	COMMON_IO_Read(&amplitude, 2);
-
-	CS_T_HIGH();
-
-	le = (amplitude >> 8) & 0xff;
-
 	hTemp.eState = bFault = (le & 0x0001);
 	le >>= 1;
-	
+	le = 0x7fff - le;
+	//R-ref 3KOhm with RTD2K @ 20C MAX:21844 (5554h) Ratio 0.666
+
 	hTemp.iTemperature_Value =
-			(int16_t) ((((float) le / 32.0f)
-			- 256.0f) * 10.0f);
+			(int16_t) ((((float) le * 0.00130577f)
+			+ 21.3234f) * 100.0f);
+
+	if (bFault) {
+		rReg[0] = 0x07;
+		CS_T_LOW();
+
+		COMMON_IO_Read(rReg, 2);
+
+		CS_T_HIGH();
+		hTemp.iTemperature_Level = rReg[1];
+	} else {
+		hTemp.iTemperature_Level = 0x00;
+	}
 
 	BSP_LED_Toggle(LED_BLUE);
 	P2PS_Send_Notification();
