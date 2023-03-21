@@ -21,6 +21,9 @@ bool bTemperatureSinkInit = false;
 #define T_INT_IRQn EXTI9_5_IRQn //EN_R_IRQn
 #define T_INT_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE() //EN_R_GPIO_CLK_ENABLE()
 #endif
+
+__IO Temperature_t hTemp;
+
 void TemperatureSinkInit(void)
 {
 	//TODO: INT pin configuration
@@ -48,6 +51,7 @@ void TemperatureSinkDeInit(void)
 {
 	HAL_NVIC_DisableIRQ(T_INT_IRQn);
 	HAL_GPIO_DeInit(T_INT_PORT, T_INT_PIN);
+	HAL_GPIO_DeInit(CS_T_Port, CS_T_Pin);
 }
 
 void TemperatureSinkStop(void)
@@ -66,18 +70,25 @@ void TemperatureSinkStart(void)
 	{ 0x80, 0x00 };
 	uint8_t config = 0;
 
+	if (hTemperature == NULL)
+	{
+		hTemperature = &hTemp;
+	}
+
 	if (!bTemperatureSinkInit)
 	{
-		bTemperatureSinkInit = true;
-		hTemperature->eMode = temperatureReceiver;
 		TemperatureSinkInit();
 
+
+		bTemperatureSinkInit = true;
+		hTemp.eMode = temperatureReceiver;
+
 		config |= (1 << 7);	//D7 V bias
-		//	config |= (1 << 6);	//D6 Conversion mode 0: Normally off, 1: Auto
-		//		config |= (1 << 5);	//D5 1: 1-Shot
+		config |= (1 << 6);	//D6 Conversion mode 0: Normally off, 1: Auto
+		config |= (1 << 5);	//D5 1: 1-Shot
 		config |= (hTemperature->eWire << 4);	//D4 0: 3 Wire, 1: 2/4 Wire
 		//		config |= (3 << 2);	//D2-D3 Fault detect cycle control
-		//		config |= (1 << 1);	//D1 Fault status clear
+		config |= (1 << 1);	//D1 Fault status clear
 		//		config |= (1 << 0);	//D0 Filter 0: 60 Hz, 1: 50 Hz
 		//		config <<= 8;
 		wReg[1] = config;
@@ -131,26 +142,34 @@ void TemperatureSink_IRQHandler(void)
 {
 	uint16_t amplitude;
 	uint16_t le = 0;
-
-	CS_T_LOW();
+	bool bFault = false;
 
 	amplitude = 0x0001;
+	CS_T_LOW();
 
 	COMMON_IO_Read(&amplitude, 2);
+
+	CS_T_HIGH();
 
 	le |= ((amplitude) & 0xff00);
 
+	HAL_Delay(10);
+
 	amplitude = 0x0002;
+	CS_T_LOW();
 
 	COMMON_IO_Read(&amplitude, 2);
 
+	CS_T_HIGH();
+
 	le = (amplitude >> 8) & 0xff;
 
-	CS_T_HIGH();
+	hTemp.eState = bFault = (le & 0x0001);
+	le >>= 1;
 	
-	hTemperature->iTemperature_Value =
-			(uint16_t) ((((float) (le / 2.0f) / 32.0f)
-			- 256.0f));
+	hTemp.iTemperature_Value =
+			(int16_t) ((((float) le / 32.0f)
+			- 256.0f) * 10.0f);
 
 	BSP_LED_Toggle(LED_BLUE);
 	P2PS_Send_Notification();

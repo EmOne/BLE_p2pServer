@@ -52,9 +52,9 @@ typedef struct
   P2P_LedCharValue_t    LedControl;
 	P2P_ButtonCharValue_t ButtonControl; //TODO: Apply to Digital sensor
 	Current_t CurrentControl;
-	Voltage_t VoltageControl;
-	Temperature_t TemperatureControl;
-	Vibrate_t VibrationControl;
+//	Voltage_t VoltageControl;
+//	Temperature_t *TemperatureControl;
+//	Vibrate_t VibrationControl;
   uint16_t              ConnectionHandle;
 } P2P_Server_App_Context_t;
 /* USER CODE END PTD */
@@ -85,7 +85,7 @@ Temperature_t *hTemperature;
  * START of Section BLE_APP_CONTEXT
  */
 
-static P2P_Server_App_Context_t P2P_Server_App_Context;
+P2P_Server_App_Context_t P2P_Server_App_Context;
 
 /**
  * END of Section BLE_APP_CONTEXT
@@ -466,8 +466,8 @@ void P2PS_APP_Init(void)
 //	if (hVibrate == NULL)
 //		hVibrate = &P2P_Server_App_Context.VibrationControl;
 
-	if (hTemperature == NULL)
-		hTemperature = &P2P_Server_App_Context.TemperatureControl;
+//	if (hTemperature == NULL)
+//		hTemperature = &P2P_Server_App_Context.TemperatureControl;
 
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 
@@ -536,10 +536,6 @@ void P2PS_APP_LED_BUTTON_context_Init(void){
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Level = 0x00;
 	P2P_Server_App_Context.CurrentControl.iCurrent_Value = 0x00;
-	P2P_Server_App_Context.TemperatureControl.eMode = temperatureStop;
-	P2P_Server_App_Context.TemperatureControl.eState = temperatureDRDY;
-	P2P_Server_App_Context.TemperatureControl.iTemperature_Level = 0x00;
-	P2P_Server_App_Context.TemperatureControl.iTemperature_Value = 0x00;
 #endif
 #if(P2P_SERVER2 != 0)
   P2P_Server_App_Context.LedControl.Device_Led_Selection=0x02; /* Device2 */
@@ -609,20 +605,22 @@ void P2PS_Send_Notification(void)
 	else if (bTemperatureSinkInit)
 	{
 		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
-				&P2P_Server_App_Context.TemperatureControl,
+				hTemperature,
 				sizeof(Temperature_t));
 		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Temperature_t);
 	}
 	else if (bVoltageSinkInit)
 	{
 		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
-				&P2P_Server_App_Context.VoltageControl, sizeof(Voltage_t));
+				hVoltage,
+				sizeof(Voltage_t));
 		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Voltage_t);
 	}
 	else if (bVibrateSinkInit)
 	{
 		memcpy(&data[sizeof(P2P_ButtonCharValue_t)],
-				&P2P_Server_App_Context.VibrationControl, sizeof(Vibrate_t));
+				hVibrate,
+				sizeof(Vibrate_t));
 		len = sizeof(P2P_ButtonCharValue_t) + sizeof(Vibrate_t);
 	}
 	else

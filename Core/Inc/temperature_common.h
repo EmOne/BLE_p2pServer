@@ -19,7 +19,8 @@ typedef enum
 typedef enum
 {
 	temperatureDRDY,
-	temperatureUNKNOWN
+	temperatureFAULT,
+	temperatureUNKNOWN = 0xFF
 } eTemperature_state;
 
 typedef enum
@@ -30,7 +31,7 @@ typedef enum
 
 typedef struct
 {
-	uint16_t iTemperature_Value;
+	int16_t iTemperature_Value;
 	uint16_t iTemperature_Level;
 	uint8_t eWire;
 	uint8_t eMode;
