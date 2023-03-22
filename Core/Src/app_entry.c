@@ -36,6 +36,9 @@
 /* Private includes -----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "current_common.h"
+#include "voltage_common.h"
+#include "vibrate_common.h"
+#include "temperature_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -670,10 +673,17 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
       break;
 
 	case GPIO_PIN_6:
-		TemperatureSink_IRQHandler();
+		if (bTemperatureSinkInit) {
+			TemperatureSink_IRQHandler();
+		} else if (bVoltageSinkInit)
+		{
+			VoltageSink_IRQHandler();
+		}
 		break;
 	case GPIO_PIN_10:
-		TemperatureSink_IRQHandler();
+		if (bTemperatureSinkInit) {
+			TemperatureSink_IRQHandler();
+		}
 		break;
 
     default:

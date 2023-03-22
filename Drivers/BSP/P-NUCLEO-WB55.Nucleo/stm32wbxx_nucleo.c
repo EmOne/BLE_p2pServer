@@ -101,6 +101,7 @@ static void               SPIx_Init(void);
 static void               SPIx_Write(uint8_t Value);
 static void               SPIx_Error (void);
 static void               SPIx_MspInit(void);
+static void               SPIx_MspInit_1LINE(void);
 #endif /* HAL_SPI_MODULE_ENABLED */
 
 #ifdef HAL_ADC_MODULE_ENABLED
@@ -472,7 +473,33 @@ static void SPIx_MspInit(void)
   /* Enable SPI clock */
   NUCLEO_SPIx_CLK_ENABLE();
 }
+static void               SPIx_MspInit_1LINE(void)
+{
+	GPIO_InitTypeDef  gpioinitstruct = {0};
 
+	  /*** Configure the GPIOs ***/
+	  /* Enable GPIO clock */
+	  NUCLEO_SPIx_SCK_GPIO_CLK_ENABLE();
+	  NUCLEO_SPIx_MISO_MOSI_GPIO_CLK_ENABLE();
+
+	  /* Configure SPI SCK */
+	  gpioinitstruct.Pin        = NUCLEO_SPIx_SCK_PIN;
+	  gpioinitstruct.Mode       = GPIO_MODE_AF_PP;
+	  gpioinitstruct.Pull       = GPIO_PULLUP;
+	  gpioinitstruct.Speed      = GPIO_SPEED_FREQ_VERY_HIGH;
+	  gpioinitstruct.Alternate  = NUCLEO_SPIx_SCK_AF;
+	  HAL_GPIO_Init(NUCLEO_SPIx_SCK_GPIO_PORT, &gpioinitstruct);
+
+	  /* Configure SPI MISO */
+	  gpioinitstruct.Alternate  = NUCLEO_SPIx_MISO_MOSI_AF;
+	  gpioinitstruct.Pull       = GPIO_PULLDOWN;
+	  gpioinitstruct.Pin        = NUCLEO_SPIx_MISO_PIN;
+	  HAL_GPIO_Init(NUCLEO_SPIx_MISO_MOSI_GPIO_PORT, &gpioinitstruct);
+
+	  /*** Configure the SPI peripheral ***/
+	  /* Enable SPI clock */
+	  NUCLEO_SPIx_CLK_ENABLE();
+}
 /**
   * @brief  Initialize SPI HAL.
   * @retval None
@@ -778,6 +805,39 @@ void COMMON_IO_Init(void)
 {
 	/* SPI Config */
 	SPIx_Init();
+}
+
+void COMMON_IO_Init_RxOnly(void)
+{
+	if(HAL_SPI_GetState(&hnucleo_Spi) == HAL_SPI_STATE_RESET)
+	  {
+	    /* SPI Config */
+	    hnucleo_Spi.Instance = NUCLEO_SPIx;
+	      /* SPI baudrate is set to 8 MHz maximum (PCLK2/SPI_BaudRatePrescaler = 32/4 = 8 MHz)
+	       to verify these constraints:
+	          - ST7735 LCD SPI interface max baudrate is 15MHz for write and 6.66MHz for read
+	            Since the provided driver doesn't use read capability from LCD, only constraint
+	            on write baudrate is considered.
+	          - SD card SPI interface max baudrate is 25MHz for write/read
+	          - PCLK2 max frequency is 32 MHz
+	       */
+	    hnucleo_Spi.Init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_4;
+	    hnucleo_Spi.Init.Direction          = SPI_DIRECTION_1LINE;
+	    hnucleo_Spi.Init.CLKPhase           = SPI_PHASE_2EDGE;
+	    hnucleo_Spi.Init.CLKPolarity        = SPI_POLARITY_HIGH;
+	    hnucleo_Spi.Init.CRCCalculation     = SPI_CRCCALCULATION_DISABLE;
+	    hnucleo_Spi.Init.CRCPolynomial      = 7;
+	    hnucleo_Spi.Init.CRCLength          = SPI_CRC_LENGTH_DATASIZE;
+	    hnucleo_Spi.Init.DataSize           = SPI_DATASIZE_8BIT;
+	    hnucleo_Spi.Init.FirstBit           = SPI_FIRSTBIT_MSB;
+	    hnucleo_Spi.Init.NSS                = SPI_NSS_SOFT;
+	    hnucleo_Spi.Init.NSSPMode           = SPI_NSS_PULSE_DISABLE;
+	    hnucleo_Spi.Init.TIMode             = SPI_TIMODE_DISABLE;
+	    hnucleo_Spi.Init.Mode               = SPI_MODE_MASTER;
+
+	    SPIx_MspInit_1LINE();
+	    HAL_SPI_Init(&hnucleo_Spi);
+	  }
 }
 
 void COMMON_IO_Read(uint8_t *pData, uint16_t len)

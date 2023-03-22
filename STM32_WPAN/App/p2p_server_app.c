@@ -483,14 +483,14 @@ void P2PS_APP_Init(void)
 			CurrentSourceStep);
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_CURRENT_SOURCE_OFF_ID, UTIL_SEQ_RFU,
 			CurrentSourceStop);
-//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_OFF_ID, UTIL_SEQ_RFU,
-//			VoltageSinkStop);
-//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID, UTIL_SEQ_RFU,
-//			VoltageSinkStart);
-//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_OFF_ID, UTIL_SEQ_RFU,
-//			VibrateSinkStop);
-//	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_ON_ID, UTIL_SEQ_RFU,
-//			VibrateSinkStart);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_OFF_ID, UTIL_SEQ_RFU,
+			VoltageSinkStop);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID, UTIL_SEQ_RFU,
+			VoltageSinkStart);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_OFF_ID, UTIL_SEQ_RFU,
+			VibrateSinkStop);
+	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_VIBRATE_SINK_ON_ID, UTIL_SEQ_RFU,
+			VibrateSinkStart);
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_OFF_ID, UTIL_SEQ_RFU,
 			TemperatureSinkStop);
 	UTIL_SEQ_RegTask(1 << CFG_TASK_MODULE_TEMPERATURE_SINK_ON_ID, UTIL_SEQ_RFU,
@@ -504,10 +504,10 @@ void P2PS_APP_Init(void)
 			hw_ts_SingleShot, CurrentSourceRamp);
 	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(CurrentSink_timer_Id), hw_ts_SingleShot,
 			CurrentSinkStart);
-//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VibrateSink_timer_Id), hw_ts_SingleShot,
-//			VibrateSinkStart);
-//	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VoltageSink_timer_Id), hw_ts_SingleShot,
-//			VoltageSinkStart);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VibrateSink_timer_Id), hw_ts_SingleShot,
+			VibrateSinkStart);
+	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(VoltageSink_timer_Id), hw_ts_SingleShot,
+			VoltageSinkStart);
 	HW_TS_Create(CFG_TIM_PROC_ID_ISR, &(TemperatureSink_timer_Id),
 			hw_ts_SingleShot,
 			TemperatureSinkStart);

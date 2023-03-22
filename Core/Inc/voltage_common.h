@@ -23,8 +23,8 @@ typedef enum
 
 typedef struct
 {
-	uint16_t iVoltage_Value;
-	uint16_t iVoltage_Level;
+	uint32_t iVoltage_Value;
+	uint32_t iVoltage_Level;
 	uint8_t eMode;
 	uint8_t eState;
 } Voltage_t;
@@ -34,6 +34,8 @@ void VoltageSinkDeInit(void);
 
 void VoltageSinkStart(void);
 void VoltageSinkStop(void);
+
+void VoltageSink_IRQHandler(void);
 
 extern Voltage_t *hVoltage;
 extern uint8_t VoltageSink_timer_Id;
