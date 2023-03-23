@@ -252,13 +252,14 @@ typedef enum
  *         used to device
  */
 #define NUCLEO_I2Cx                                 I2C3
-#define NUCLEO_I2Cx_CLK_ENABLE()                    __HAL_RCC_I2C_CLK_ENABLE()
+#define NUCLEO_I2Cx_CLK_ENABLE()                    __HAL_RCC_I2C3_CLK_ENABLE()
 
+#define NUCLEO_I2Cx_SCL_AF	GPIO_AF4_I2C3
 #define NUCLEO_I2Cx_SCL_GPIO_PORT                       GPIOC
 #define NUCLEO_I2Cx_SCL_GPIO_PIN                        GPIO_PIN_0
 #define NUCLEO_I2Cx_SCL_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOC_CLK_ENABLE()
 #define NUCLEO_I2Cx_SCL_GPIO_CLK_DISABLE()              __HAL_RCC_GPIOC_CLK_DISABLE()
-
+#define NUCLEO_I2Cx_SDA_AF GPIO_AF4_I2C3
 #define NUCLEO_I2Cx_SDA_GPIO_PORT                       GPIOC
 #define NUCLEO_I2Cx_SDA_GPIO_PIN                        GPIO_PIN_1
 #define NUCLEO_I2Cx_SDA_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOC_CLK_ENABLE()
@@ -272,6 +273,7 @@ typedef enum
  * Timing Value = (uint32_t)0x00C0216C
  */
 #define I2C_TIMING                     0x00C0216C
+#define NUCLEO_I2Cx_TIMEOUT_MAX                   1000
 /**
   * @}
   */

@@ -110,9 +110,9 @@ static void               ADCx_MspInit(ADC_HandleTypeDef *hadc);
 #endif /* HAL_ADC_MODULE_ENABLED */
 
 #ifdef HAL_I2C_MODULE_ENABLED
-static void               I2Cx_Init(void);
-static void               I2Cx_Read(uint16_t* Value);
-static void               I2Cx_MspInit(void);
+void               I2Cx_Init(void);
+void               I2Cx_Read(uint8_t addr, uint16_t* Value);
+void               I2Cx_MspInit(void);
 #endif /* HAL_I2C_MODULE_ENABLED */
 
 #ifdef HAL_SPI_MODULE_ENABLED
@@ -950,7 +950,7 @@ static HAL_StatusTypeDef ADCx_Init(void)
   * @brief  Initialize I2C HAL.
   * @retval None
   */
-static void I2Cx_Init(void)
+void I2Cx_Init(void)
 {
   if(HAL_I2C_GetState(&hnucleo_I2c) == HAL_I2C_STATE_RESET)
   {
@@ -1062,14 +1062,37 @@ static void I2Cx_Init(void)
 //	/* USER CODE END I2C3_Init 2 */
 }
 
-static void               I2Cx_Read(uint16_t* Value)
+void               I2Cx_Read(uint8_t addr, uint16_t* Value)
 {
-
+	HAL_I2C_Master_Receive(&hnucleo_I2c, addr, (uint8_t*)Value, 2, NUCLEO_I2Cx_TIMEOUT_MAX);
 }
 
-static void               I2Cx_MspInit(void)
+void               I2Cx_MspInit(void)
 {
+	GPIO_InitTypeDef  gpioinitstruct = {0};
 
+	  /*** Configure the GPIOs ***/
+	  /* Enable GPIO clock */
+		NUCLEO_I2Cx_SCL_GPIO_CLK_ENABLE();
+		NUCLEO_I2Cx_SDA_GPIO_CLK_ENABLE();
+
+	  /* Configure SPI SCK */
+	  gpioinitstruct.Pin        = NUCLEO_I2Cx_SCL_GPIO_PIN;
+	  gpioinitstruct.Mode       = GPIO_MODE_AF_PP;
+	  gpioinitstruct.Pull       = GPIO_PULLUP;
+	  gpioinitstruct.Speed      = GPIO_SPEED_FREQ_VERY_HIGH;
+	  gpioinitstruct.Alternate  = NUCLEO_I2Cx_SCL_AF;
+	  HAL_GPIO_Init(NUCLEO_I2Cx_SCL_GPIO_PORT, &gpioinitstruct);
+
+	  /* Configure SPI MISO and MOSI */
+	  gpioinitstruct.Pin        = NUCLEO_I2Cx_SDA_GPIO_PIN;
+	  gpioinitstruct.Alternate  = NUCLEO_I2Cx_SDA_AF;
+	  gpioinitstruct.Pull       = GPIO_PULLUP;
+	  HAL_GPIO_Init(NUCLEO_I2Cx_SDA_GPIO_PORT, &gpioinitstruct);
+
+	  /*** Configure the SPI peripheral ***/
+	  /* Enable I2C clock */
+	  NUCLEO_I2Cx_CLK_ENABLE();
 }
 
 #endif /* HAL_I2C_MODULE_ENABLED */

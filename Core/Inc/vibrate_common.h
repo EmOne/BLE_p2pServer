@@ -29,8 +29,11 @@ typedef struct
 	uint8_t eState;
 } Vibrate_t;
 
+void VibrateSinkInit(void);
+void VibrateSinkDeInit(void);
 void VibrateSinkStart(void);
 void VibrateSinkStop(void);
+void VibrateSink_IRQHandler(void);
 
 extern Vibrate_t *hVibrate;
 extern uint8_t VibrateSink_timer_Id;
