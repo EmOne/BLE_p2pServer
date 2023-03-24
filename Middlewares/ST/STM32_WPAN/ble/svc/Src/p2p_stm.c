@@ -233,7 +233,7 @@ void P2PS_STM_Init(void)
     COPY_P2P_NOTIFY_UUID(uuid16.Char_UUID_128);
     aci_gatt_add_char(aPeerToPeerContext.PeerToPeerSvcHdle,
                       UUID_TYPE_128, &uuid16,
-                      10,
+                      16,
                       CHAR_PROP_NOTIFY,
                       ATTR_PERMISSION_NONE,
                       GATT_NOTIFY_ATTRIBUTE_WRITE, /* gattEvtMask */

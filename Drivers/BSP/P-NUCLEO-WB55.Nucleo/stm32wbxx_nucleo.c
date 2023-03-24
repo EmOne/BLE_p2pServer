@@ -807,6 +807,12 @@ void COMMON_IO_Init(void)
 	SPIx_Init();
 }
 
+void COMMON_IO_DeInit(void)
+{
+	/* SPI Config */
+	SPIx_Error();
+}
+
 void COMMON_IO_Init_RxOnly(void)
 {
 	if(HAL_SPI_GetState(&hnucleo_Spi) == HAL_SPI_STATE_RESET)

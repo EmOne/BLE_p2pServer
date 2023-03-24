@@ -73,6 +73,7 @@ void VoltageSinkInit(void)
 }
 void VoltageSinkDeInit(void)
 {
+	COMMON_IO_DeInit();
 	HAL_NVIC_DisableIRQ(INT_IRQn);
 	HAL_GPIO_DeInit(INT_PORT, INT_PIN);
 	HAL_GPIO_DeInit(REST_PORT, REST_PIN);
@@ -105,7 +106,7 @@ void VoltageSinkStart(void)
 		hVoltage->eMode = voltageReceiver;
 
 		HAL_NVIC_SetPriority(INT_IRQn, 0x0F, 0x00);
-		HAL_NVIC_EnableIRQ(INT_IRQn);
+//		HAL_NVIC_EnableIRQ(INT_IRQn);
 
 		REST_LOW();
 		HAL_Delay(10);
@@ -127,7 +128,7 @@ void VoltageSinkStart(void)
 //		hVoltage->iVoltage_Value = (uint32_t) ((((float) le / (0XFFFFF >> 1)) * 2.048f)
 //				* 100.0f) - 1;
 ////
-		hVoltage->eState = voltageReset;
+//		hVoltage->eState = voltageReset;
 //
 		HW_TS_Start(VoltageSink_timer_Id,
 				(uint32_t) (0.500 * 1000 * 1000 / CFG_TS_TICK_VAL));
@@ -144,18 +145,18 @@ void VoltageSink_IRQHandler(void)
 	uint8_t rReg[3] = { 0x00 };
 	uint32_t le = 0;
 
-	HAL_NVIC_DisableIRQ(INT_IRQn);
+//	HAL_NVIC_DisableIRQ(INT_IRQn);
 
-	COMMON_IO_Read(&rReg, 3);
+	COMMON_IO_Read(rReg, 3);
 
-	HAL_NVIC_EnableIRQ(INT_IRQn);
+//	HAL_NVIC_EnableIRQ(INT_IRQn);
 	//
-	le = (rReg[0]) & 0xff;
+	le = (rReg[2]) & 0xff;
 	le |= (rReg[1] & 0xff) << 8;
-	le |= (rReg[2] & 0xff) << 16;
+	le |= (rReg[0] & 0x0f) << 16;
 	hVoltage->iVoltage_Level = le;
-	hVoltage->iVoltage_Value = (uint32_t) ((((float) le / (0XFFFFF >> 1))
-			* 2.048f) * 100.0f) - 1;
+	hVoltage->iVoltage_Value = (uint32_t) ((((float) le / (0XFFFFF))
+			* 5.0f) * 1000000.0f);
 	//
 	hVoltage->eState = voltageReset;
 
