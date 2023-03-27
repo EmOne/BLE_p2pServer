@@ -105,7 +105,7 @@ void VoltageSinkStart(void)
 		bVoltageSinkInit = true;
 		hVoltage->eMode = voltageReceiver;
 
-		HAL_NVIC_SetPriority(INT_IRQn, 0x0F, 0x00);
+//		HAL_NVIC_SetPriority(INT_IRQn, 0x0F, 0x00);
 //		HAL_NVIC_EnableIRQ(INT_IRQn);
 
 		REST_LOW();
@@ -140,23 +140,25 @@ void VoltageSinkStart(void)
 		VoltageSink_IRQHandler();
 }
 
+uint8_t rReg[4] = { 0x00 };
 void VoltageSink_IRQHandler(void)
 {
-	uint8_t rReg[3] = { 0x00 };
-	uint32_t le = 0;
+	int32_t le = 0;
 
 //	HAL_NVIC_DisableIRQ(INT_IRQn);
 
-	COMMON_IO_Read(rReg, 3);
+	COMMON_IO_Read(rReg, 4);
 
 //	HAL_NVIC_EnableIRQ(INT_IRQn);
 	//
 	le = (rReg[2]) & 0xff;
 	le |= (rReg[1] & 0xff) << 8;
-	le |= (rReg[0] & 0x0f) << 16;
-	hVoltage->iVoltage_Level = le;
-	hVoltage->iVoltage_Value = (uint32_t) ((((float) le / (0XFFFFF))
-			* 5.0f) * 1000000.0f);
+	le |= (rReg[0] & 0xff) << 16;
+	le -= 0x800000;
+//    le -= 0x800000;
+	hVoltage->iVoltage_Status = rReg[3];
+	hVoltage->iVoltage_Value =((((float) le / (float)(0X7FFFFF))
+			) * 100000000.0f);
 	//
 	hVoltage->eState = voltageReset;
 

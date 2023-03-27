@@ -23,8 +23,8 @@ typedef enum
 
 typedef struct
 {
-	uint32_t iVoltage_Value;
-	uint32_t iVoltage_Level;
+	float iVoltage_Value;
+	uint8_t iVoltage_Status;
 	uint8_t eMode;
 	uint8_t eState;
 } Voltage_t;

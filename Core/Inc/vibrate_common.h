@@ -23,8 +23,8 @@ typedef enum
 
 typedef struct
 {
-	uint16_t iVibrate_Value;
-	uint16_t iVibrate_Level;
+	float iVibrate_Value;
+	uint8_t iVibrate_Status;
 	uint8_t eMode;
 	uint8_t eState;
 } Vibrate_t;

@@ -77,7 +77,7 @@ void VibrateSink_IRQHandler(void){
 	le = (amplitude >> 8) & 0xff;
 	le |= (amplitude & 0x0f) << 8;
 
-	hVibrate->iVibrate_Value = le * 10;
+	hVibrate->iVibrate_Value = (float)le;
 
 	BSP_LED_Toggle(LED_BLUE);
 
