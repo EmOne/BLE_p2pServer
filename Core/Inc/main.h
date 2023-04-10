@@ -49,7 +49,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+extern ADC_HandleTypeDef hadc1;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -92,6 +92,62 @@ void COMMON_IO_Write(uint8_t *pData, uint16_t len);
 #define EN_R_IRQn	EXTI15_10_IRQn
 #define EN_R_LOW()      HAL_GPIO_WritePin(EN_R_Port, EN_R_Pin, GPIO_PIN_RESET)
 #define EN_R_HIGH()     HAL_GPIO_WritePin(EN_R_Port, EN_R_Pin, GPIO_PIN_SET)
+
+/* User can use this section to tailor ADCx instance under use and associated
+ resources */
+
+/* ## Definition of ADC related resources ################################### */
+/* Definition of ADCx clock resources */
+#define ADCx                            ADC1
+#define ADCx_CLK_ENABLE()               __HAL_RCC_ADC_CLK_ENABLE()
+
+#define ADCx_FORCE_RESET()              __HAL_RCC_ADC_FORCE_RESET()
+#define ADCx_RELEASE_RESET()            __HAL_RCC_ADC_RELEASE_RESET()
+
+/* Definition of ADCx channels */
+#define ADCx_CHANNELa                   ADC_CHANNEL_1
+
+/* Definition of ADCx NVIC resources */
+#define ADCx_IRQn                       ADC1_IRQn
+#define ADCx_IRQHandler                 ADC1_IRQHandler
+
+/* Definition of ADCx channels pins */
+#define ADCx_CHANNELa_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
+#define ADCx_CHANNELa_GPIO_PORT         GPIOC
+#define ADCx_CHANNELa_PIN               GPIO_PIN_0
+
+/* Definitions of environment analog values */
+/* Value of analog reference voltage (Vref+), connected to analog voltage   */
+/* supply Vdda (unit: mV).                                                  */
+#define VDDA_APPLI                       ((uint32_t)3300)
+
+/* Definitions of data related to this example */
+/* Full-scale digital value with a resolution of 12 bits (voltage range     */
+/* determined by analog voltage references Vref+ and Vref-,                 */
+/* refer to reference manual).                                              */
+#define DIGITAL_SCALE_12BITS             ((uint32_t) 0xFFF)
+
+/* Init variable out of ADC expected conversion data range */
+#define VAR_CONVERTED_DATA_INIT_VALUE    (DIGITAL_SCALE_12BITS + 1)
+
+/* Private macro -------------------------------------------------------------*/
+
+/**
+ * @brief  Macro to calculate the voltage (unit: mVolt)
+ *         corresponding to a ADC conversion data (unit: digital value).
+ * @note   ADC measurement data must correspond to a resolution of 12bits
+ *         (full scale digital value 4095). If not the case, the data must be
+ *         preliminarily rescaled to an equivalent resolution of 12 bits.
+ * @note   Analog reference voltage (Vref+) must be known from
+ *         user board environment.
+ * @param  __VREFANALOG_VOLTAGE__ Analog reference voltage (unit: mV)
+ * @param  __ADC_DATA__ ADC conversion data (resolution 12 bits)
+ *                       (unit: digital value).
+ * @retval ADC conversion data equivalent voltage value (unit: mVolt)
+ */
+#define __ADC_CALC_DATA_VOLTAGE(__VREFANALOG_VOLTAGE__, __ADC_DATA__)       \
+  ((__ADC_DATA__) * (__VREFANALOG_VOLTAGE__) / DIGITAL_SCALE_12BITS)
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

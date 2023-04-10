@@ -673,9 +673,11 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
       break;
 
 	case GPIO_PIN_6:
-		if (bTemperatureSinkInit) {
+		if (bTemperatureSinkInit)
+		{
 			TemperatureSink_IRQHandler();
-		} else if (bVoltageSinkInit)
+		}
+		else if (bVoltageSinkInit)
 		{
 			VoltageSink_IRQHandler();
 		}

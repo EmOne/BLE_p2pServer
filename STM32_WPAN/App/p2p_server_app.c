@@ -216,6 +216,20 @@ void P2PS_STM_App_Notification(P2PS_STM_App_Notification_evt_t *pNotification)
 				APP_DBG_MSG(
 						"-- P2P APPLICATION SERVER  : Voltage sink enable\n");
 				APP_DBG_MSG(" \n\r");
+				if (pNotification->DataTransfered.pPayload[2] == 0x01)
+				{
+					APP_DBG_MSG("-- P2P APPLICATION SERVER  : Ratio meter\n");
+					APP_DBG_MSG(" \n\r");
+
+					hVoltage->eMode = voltageRatio;
+
+				}
+				else if (pNotification->DataTransfered.pPayload[2] == 0x00)
+				{
+					APP_DBG_MSG("-- P2P APPLICATION SERVER  : Voltage meter\n");
+					APP_DBG_MSG(" \n\r");
+					hVoltage->eMode = voltageReceiver;
+				}
 				UTIL_SEQ_SetTask(1 << CFG_TASK_MODULE_VOLTAGE_SINK_ON_ID,
 						CFG_SCH_PRIO_0);
 			}

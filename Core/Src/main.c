@@ -52,6 +52,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/* Definitions of environment analog values */
+/* Definitions of data related to this example */
+/* ADC unitary conversion timeout */
+/* Considering ADC settings, duration of 1 ADC conversion should always    */
+/* be lower than 1ms.                                                      */
+#define ADC_UNITARY_CONVERSION_TIMEOUT_MS (   1U)
+
+/* Init variable out of ADC expected conversion data range for data         */
+/* on 16 bits (oversampling enabled).                                       */
+#define VAR_CONVERTED_DATA_INIT_VALUE_16BITS    (0xFFFF + 1U)
 
 /* USER CODE END PD */
 
@@ -73,6 +83,7 @@ RNG_HandleTypeDef hrng;
 RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN PV */
+ADC_HandleTypeDef hadc1;
 
 /* USER CODE END PV */
 
@@ -86,7 +97,7 @@ static void MX_RTC_Init(void);
 static void MX_IPCC_Init(void);
 static void MX_RNG_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void MX_ADC1_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -135,7 +146,14 @@ int main(void)
   MX_RTC_Init();
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
-
+	MX_ADC1_Init();
+	BSP_LED_Init(LED2);
+	/* Run the ADC calibration */
+	if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
+	{
+		/* Calibration Error */
+		Error_Handler();
+	}
   /* USER CODE END 2 */
 
   /* Init code for STM32_WPAN */
@@ -182,6 +200,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+	RCC_OscInitStruct.PLL.PLLN = 32;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV5;
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -489,6 +513,85 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+ * @brief ADC1 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_ADC1_Init(void)
+{
+
+	/* USER CODE BEGIN ADC1_Init 0 */
+
+	/* USER CODE END ADC1_Init 0 */
+
+	ADC_ChannelConfTypeDef sConfig =
+	{ 0 };
+
+	/* USER CODE BEGIN ADC1_Init 1 */
+
+	/* USER CODE END ADC1_Init 1 */
+
+	/** Common config
+	 */
+	hadc1.Instance = ADC1;
+	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+	hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+	hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+	hadc1.Init.LowPowerAutoWait = DISABLE;
+	hadc1.Init.ContinuousConvMode = DISABLE;
+	hadc1.Init.NbrOfConversion = 1;
+	hadc1.Init.DiscontinuousConvMode = DISABLE;
+	hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+	hadc1.Init.DMAContinuousRequests = DISABLE;
+	hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+	hadc1.Init.OversamplingMode = ENABLE;
+	hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_16;
+	hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_4;
+	hadc1.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
+	hadc1.Init.Oversampling.OversamplingStopReset =
+			ADC_REGOVERSAMPLING_CONTINUED_MODE;
+	if (HAL_ADC_Init(&hadc1) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	/** Configure Regular Channel
+	 */
+	sConfig.Channel = ADC_CHANNEL_1;
+	sConfig.Rank = ADC_REGULAR_RANK_1;
+	sConfig.SamplingTime = ADC_SAMPLETIME_92CYCLES_5;
+	sConfig.SingleDiff = ADC_SINGLE_ENDED;
+	sConfig.OffsetNumber = ADC_OFFSET_NONE;
+	sConfig.Offset = 0;
+	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	/* USER CODE BEGIN ADC1_Init 2 */
+
+	/* USER CODE END ADC1_Init 2 */
+
+}
+
+/******************************************************************************/
+/*   USER IRQ HANDLER TREATMENT                                               */
+/******************************************************************************/
+
+/**
+ * @brief  ADC error callback in non blocking mode
+ *        (ADC conversion with interruption or transfer by DMA)
+ * @param  hadc: ADC handle
+ * @retval None
+ */
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc)
+{
+	/* In case of ADC error, call main error handler */
+	Error_Handler();
+}
 
 /* USER CODE END 4 */
 
@@ -500,7 +603,14 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	while (1)
+	{
+		/* Toggle LED2 */
+		BSP_LED_Off(LED2);
+		HAL_Delay(800);
+		BSP_LED_On(LED2);
+		HAL_Delay(200);
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 

@@ -13,7 +13,7 @@
 
 typedef enum
 {
-	voltageStop, voltageReceiver
+	voltageStop, voltageReceiver, voltageRatio
 } eVoltage_mode;
 
 typedef enum

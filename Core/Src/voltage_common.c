@@ -32,6 +32,16 @@ bool bVoltageSinkInit = false;
 #define INT_IRQn EXTI9_5_IRQn //EN_R_IRQn
 #define INT_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE() //EN_R_GPIO_CLK_ENABLE()
 
+#define AN_1_PORT	ADCx_CHANNELa_GPIO_PORT
+#define AN_1_PIN	ADCx_CHANNELa_PIN
+#define AN_1_CLK_ENABLE ADCx_CHANNELa_GPIO_CLK_ENABLE
+
+/* Variables for ADC conversion data */
+__IO uint16_t uhADCxConvertedData = VAR_CONVERTED_DATA_INIT_VALUE; /* ADC group regular conversion data */
+
+/* Variables for ADC conversion data computation to physical values */
+uint16_t uhADCxConvertedData_Voltage_mVolt = 0; /* Value of voltage calculated from ADC conversion data (unit: mV) */
+
 #else
 #define FILT_PORT 	GPIOA
 #define FILT_PIN	GPIO_PIN_9
@@ -70,6 +80,15 @@ void VoltageSinkInit(void)
 	GAIN_HIGH();
 
 	COMMON_IO_Init();
+
+//	AN_1_CLK_ENABLE();
+//	gpioinitstruct.Pin = AN_1_PIN;
+//	gpioinitstruct.Mode = GPIO_MODE_ANALOG;
+//	gpioinitstruct.Pull = GPIO_NOPULL;
+//	gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
+//	HAL_GPIO_Init(AN_1_PORT, &gpioinitstruct);
+
+//	_HAL_RCC_ADC_CLK_ENABLE();
 }
 void VoltageSinkDeInit(void)
 {
@@ -103,7 +122,7 @@ void VoltageSinkStart(void)
 		VoltageSinkInit();
 
 		bVoltageSinkInit = true;
-		hVoltage->eMode = voltageReceiver;
+//		hVoltage->eMode = voltageReceiver;
 
 //		HAL_NVIC_SetPriority(INT_IRQn, 0x0F, 0x00);
 //		HAL_NVIC_EnableIRQ(INT_IRQn);
@@ -146,20 +165,72 @@ void VoltageSink_IRQHandler(void)
 	int32_t le = 0;
 
 //	HAL_NVIC_DisableIRQ(INT_IRQn);
+	if (hVoltage->eMode == voltageRatio)
+	{
+		COMMON_IO_Read(rReg, 4);
+		le = (rReg[2]) & 0xff;
+		le |= (rReg[1] & 0xff) << 8;
+		le |= (rReg[0] & 0xff) << 16;
+		le -= 0x800000;
+		//    le -= 0x800000;
+		hVoltage->iVoltage_Status = rReg[3];
+		hVoltage->iVoltage_Value = ((((float) le / (float) (0X7FFFFF)))
+				* 100000000.0f);
 
-	COMMON_IO_Read(rReg, 4);
+	}
+	else if (hVoltage->eMode == voltageReceiver)
+	{
+		FILT_LOW();
+		COMMON_IO_Read(rReg, 2);
+		FILT_HIGH();
 
+		le = (rReg[1]) & 0xff;
+		le |= (rReg[0] & 0xff) << 8;
+
+		hVoltage->iVoltage_Value = ((((float) le / (float) (0X7FFFFF)))
+				* 100000000.0f);
+	}
 //	HAL_NVIC_EnableIRQ(INT_IRQn);
 	//
-	le = (rReg[2]) & 0xff;
-	le |= (rReg[1] & 0xff) << 8;
-	le |= (rReg[0] & 0xff) << 16;
-	le -= 0x800000;
-//    le -= 0x800000;
-	hVoltage->iVoltage_Status = rReg[3];
-	hVoltage->iVoltage_Value =((((float) le / (float)(0X7FFFFF))
-			) * 100000000.0f);
-	//
+
+	/* Note: At this step, a voltage can be supplied to ADC channel input     */
+	/*       (by connecting an external signal voltage generator to the       */
+	/*       analog input pin) to perform a ADC conversion on a determined    */
+	/*       voltage level.                                                   */
+	/*       Otherwise, ADC channel input can be let floating, in this case   */
+	/*       ADC conversion data will be undetermined.                        */
+
+	/*## Enable peripherals ####################################################*/
+
+	/* Start ADC group regular conversion */
+	if (HAL_ADC_Start(&hadc1) != HAL_OK)
+	{
+		/* ADC conversion start error */
+		Error_Handler();
+	}
+
+	/* Wait till conversion is done */
+	if (HAL_ADC_PollForConversion(&hadc1, 10) != HAL_OK)
+	{
+		/* End Of Conversion flag not set on time */
+		Error_Handler();
+	}
+	else
+	{
+		/* Retrieve ADC conversion data */
+		uhADCxConvertedData = HAL_ADC_GetValue(&hadc1) / 2;
+
+		/* Computation of ADC conversions raw data to physical values           */
+		/* using helper macro.                                                  */
+		uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(VDDA_APPLI,
+				uhADCxConvertedData);
+
+//		HAL_Delay(100);
+
+		/* Toggle LED2 as heart beat */
+//		BSP_LED_Toggle(LED2);
+	}
+
 	hVoltage->eState = voltageReset;
 
 	BSP_LED_Toggle(LED_BLUE);
