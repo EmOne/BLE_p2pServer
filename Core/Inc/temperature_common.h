@@ -45,6 +45,7 @@ void TemperatureSinkStop(void);
 void TemperatureSink_IRQHandler(void);
 
 extern Temperature_t *hTemperature;
+extern Temperature_t hTemp;
 extern uint8_t TemperatureSink_timer_Id;
 
 extern bool bTemperatureSinkInit;

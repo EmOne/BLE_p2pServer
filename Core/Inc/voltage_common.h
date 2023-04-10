@@ -38,6 +38,7 @@ void VoltageSinkStop(void);
 void VoltageSink_IRQHandler(void);
 
 extern Voltage_t *hVoltage;
+extern Voltage_t hVolt;
 extern uint8_t VoltageSink_timer_Id;
 extern bool bVoltageSinkInit;
 

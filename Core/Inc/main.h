@@ -105,7 +105,7 @@ void COMMON_IO_Write(uint8_t *pData, uint16_t len);
 #define ADCx_RELEASE_RESET()            __HAL_RCC_ADC_RELEASE_RESET()
 
 /* Definition of ADCx channels */
-#define ADCx_CHANNELa                   ADC_CHANNEL_1
+#define ADCx_CHANNELa                   ADC_CHANNEL_2
 
 /* Definition of ADCx NVIC resources */
 #define ADCx_IRQn                       ADC1_IRQn
@@ -114,7 +114,7 @@ void COMMON_IO_Write(uint8_t *pData, uint16_t len);
 /* Definition of ADCx channels pins */
 #define ADCx_CHANNELa_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 #define ADCx_CHANNELa_GPIO_PORT         GPIOC
-#define ADCx_CHANNELa_PIN               GPIO_PIN_0
+#define ADCx_CHANNELa_PIN               GPIO_PIN_1
 
 /* Definitions of environment analog values */
 /* Value of analog reference voltage (Vref+), connected to analog voltage   */

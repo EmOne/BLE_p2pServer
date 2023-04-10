@@ -36,6 +36,7 @@ void VibrateSinkStop(void);
 void VibrateSink_IRQHandler(void);
 
 extern Vibrate_t *hVibrate;
+extern Vibrate_t hVib;
 extern uint8_t VibrateSink_timer_Id;
 extern bool bVibrateSinkInit;
 

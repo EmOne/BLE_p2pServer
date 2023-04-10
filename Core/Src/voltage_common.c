@@ -36,6 +36,12 @@ bool bVoltageSinkInit = false;
 #define AN_1_PIN	ADCx_CHANNELa_PIN
 #define AN_1_CLK_ENABLE ADCx_CHANNELa_GPIO_CLK_ENABLE
 
+#define AN_CS_PORT			CS_R_Port
+#define AN_CS_PIN			CS_R_Pin
+#define AN_CS_CLK_ENABLE	CS_R_GPIO_CLK_ENABLE
+#define AN_CS_LOW()	HAL_GPIO_WritePin(AN_CS_PORT, AN_CS_PIN, GPIO_PIN_RESET)
+#define AN_CS_HIGH()	HAL_GPIO_WritePin(AN_CS_PORT, AN_CS_PIN, GPIO_PIN_SET)
+
 /* Variables for ADC conversion data */
 __IO uint16_t uhADCxConvertedData = VAR_CONVERTED_DATA_INIT_VALUE; /* ADC group regular conversion data */
 
@@ -54,50 +60,58 @@ uint16_t uhADCxConvertedData_Voltage_mVolt = 0; /* Value of voltage calculated f
 
 void VoltageSinkInit(void)
 {
-
-	V_CLK_ENABLE();
 	GPIO_InitTypeDef gpioinitstruct = { 0 };
 
-	gpioinitstruct.Pin = INT_PIN;
-	gpioinitstruct.Mode = GPIO_MODE_IT_FALLING;
-	gpioinitstruct.Pull = GPIO_PULLUP;
-	gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(INT_PORT, &gpioinitstruct);
+	if (hVolt.eMode == voltageRatio)
+	{
+		V_CLK_ENABLE();
+		gpioinitstruct.Pin = INT_PIN;
+		gpioinitstruct.Mode = GPIO_MODE_IT_FALLING;
+		gpioinitstruct.Pull = GPIO_PULLUP;
+		gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
+		HAL_GPIO_Init(INT_PORT, &gpioinitstruct);
 
-	gpioinitstruct.Pin = FILT_PIN;
-	gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioinitstruct.Pull = GPIO_NOPULL;
-	gpioinitstruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-	HAL_GPIO_Init(FILT_PORT, &gpioinitstruct);
-	FILT_HIGH();
+		gpioinitstruct.Pin = FILT_PIN;
+		gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
+		gpioinitstruct.Pull = GPIO_NOPULL;
+		gpioinitstruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+		HAL_GPIO_Init(FILT_PORT, &gpioinitstruct);
+		FILT_HIGH();
 
-	gpioinitstruct.Pin = REST_PIN;
-	HAL_GPIO_Init(REST_PORT, &gpioinitstruct);
-	REST_HIGH();
+		gpioinitstruct.Pin = REST_PIN;
+		HAL_GPIO_Init(REST_PORT, &gpioinitstruct);
+		REST_HIGH();
 
-	gpioinitstruct.Pin = GAIN_PIN;
-	HAL_GPIO_Init(GAIN_PORT, &gpioinitstruct);
-	GAIN_HIGH();
+		gpioinitstruct.Pin = GAIN_PIN;
+		HAL_GPIO_Init(GAIN_PORT, &gpioinitstruct);
+		GAIN_HIGH();
+	}
+	else if (hVolt.eMode == voltageReceiver)
+	{
+			AN_CS_CLK_ENABLE();
+			gpioinitstruct.Pin = AN_CS_PIN;
+			gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
+			gpioinitstruct.Pull = GPIO_PULLUP;
+			gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
+			HAL_GPIO_Init(AN_CS_PORT, &gpioinitstruct);
+
+	}
 
 	COMMON_IO_Init();
-
-//	AN_1_CLK_ENABLE();
-//	gpioinitstruct.Pin = AN_1_PIN;
-//	gpioinitstruct.Mode = GPIO_MODE_ANALOG;
-//	gpioinitstruct.Pull = GPIO_NOPULL;
-//	gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//	HAL_GPIO_Init(AN_1_PORT, &gpioinitstruct);
-
-//	_HAL_RCC_ADC_CLK_ENABLE();
 }
 void VoltageSinkDeInit(void)
 {
 	COMMON_IO_DeInit();
-	HAL_NVIC_DisableIRQ(INT_IRQn);
-	HAL_GPIO_DeInit(INT_PORT, INT_PIN);
-	HAL_GPIO_DeInit(REST_PORT, REST_PIN);
-	HAL_GPIO_DeInit(GAIN_PORT, GAIN_PIN);
-	HAL_GPIO_DeInit(FILT_PORT, FILT_PIN);
+	if (hVolt.eMode == voltageRatio) {
+		HAL_NVIC_DisableIRQ(INT_IRQn);
+		HAL_GPIO_DeInit(INT_PORT, INT_PIN);
+		HAL_GPIO_DeInit(REST_PORT, REST_PIN);
+		HAL_GPIO_DeInit(GAIN_PORT, GAIN_PIN);
+		HAL_GPIO_DeInit(FILT_PORT, FILT_PIN);
+	} else if (hVolt.eMode == voltageReceiver)
+	{
+		HAL_GPIO_DeInit(AN_CS_PORT, AN_CS_PIN);
+	}
 }
 
 void VoltageSinkStop(void)
@@ -180,56 +194,52 @@ void VoltageSink_IRQHandler(void)
 	}
 	else if (hVoltage->eMode == voltageReceiver)
 	{
-		FILT_LOW();
+		AN_CS_LOW();
 		COMMON_IO_Read(rReg, 2);
-		FILT_HIGH();
+		AN_CS_HIGH();
 
 		le = (rReg[1]) & 0xff;
 		le |= (rReg[0] & 0xff) << 8;
 
-		hVoltage->iVoltage_Value = ((((float) le / (float) (0X7FFFFF)))
-				* 100000000.0f);
+		hVoltage->iVoltage_Value = (((((float) le) - 4000) / 226.685f) * 100.0f);
+
+		/* Note: At this step, a voltage can be supplied to ADC channel input     */
+		/*       (by connecting an external signal voltage generator to the       */
+		/*       analog input pin) to perform a ADC conversion on a determined    */
+		/*       voltage level.                                                   */
+		/*       Otherwise, ADC channel input can be let floating, in this case   */
+		/*       ADC conversion data will be undetermined.                        */
+
+		/*## Enable peripherals ####################################################*/
+
+		/* Start ADC group regular conversion */
+		if (HAL_ADC_Start(&hadc1) != HAL_OK) {
+			/* ADC conversion start error */
+			Error_Handler();
+		}
+
+		/* Wait till conversion is done */
+		if (HAL_ADC_PollForConversion(&hadc1, 10) != HAL_OK) {
+			/* End Of Conversion flag not set on time */
+			Error_Handler();
+		} else {
+			/* Retrieve ADC conversion data */
+			uhADCxConvertedData = (HAL_ADC_GetValue(&hadc1) / 2) * 33.3405f;
+
+			/* Computation of ADC conversions raw data to physical values           */
+			/* using helper macro.                                                  */
+			uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(
+					VDDA_APPLI, uhADCxConvertedData);
+
+			//		HAL_Delay(100);
+
+			/* Toggle LED2 as heart beat */
+			//		BSP_LED_Toggle(LED2);
+		}
 	}
 //	HAL_NVIC_EnableIRQ(INT_IRQn);
 	//
 
-	/* Note: At this step, a voltage can be supplied to ADC channel input     */
-	/*       (by connecting an external signal voltage generator to the       */
-	/*       analog input pin) to perform a ADC conversion on a determined    */
-	/*       voltage level.                                                   */
-	/*       Otherwise, ADC channel input can be let floating, in this case   */
-	/*       ADC conversion data will be undetermined.                        */
-
-	/*## Enable peripherals ####################################################*/
-
-	/* Start ADC group regular conversion */
-	if (HAL_ADC_Start(&hadc1) != HAL_OK)
-	{
-		/* ADC conversion start error */
-		Error_Handler();
-	}
-
-	/* Wait till conversion is done */
-	if (HAL_ADC_PollForConversion(&hadc1, 10) != HAL_OK)
-	{
-		/* End Of Conversion flag not set on time */
-		Error_Handler();
-	}
-	else
-	{
-		/* Retrieve ADC conversion data */
-		uhADCxConvertedData = HAL_ADC_GetValue(&hadc1) / 2;
-
-		/* Computation of ADC conversions raw data to physical values           */
-		/* using helper macro.                                                  */
-		uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(VDDA_APPLI,
-				uhADCxConvertedData);
-
-//		HAL_Delay(100);
-
-		/* Toggle LED2 as heart beat */
-//		BSP_LED_Toggle(LED2);
-	}
 
 	hVoltage->eState = voltageReset;
 

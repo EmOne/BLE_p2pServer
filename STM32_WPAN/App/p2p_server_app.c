@@ -474,14 +474,14 @@ void P2PS_APP_Init(void)
 	if (hCurrent == NULL)
 		hCurrent = &P2P_Server_App_Context.CurrentControl;
 
-//	if (hVoltage == NULL)
-//		hVoltage = &P2P_Server_App_Context.VoltageControl;
-//
-//	if (hVibrate == NULL)
-//		hVibrate = &P2P_Server_App_Context.VibrationControl;
+	if (hVoltage == NULL)
+		hVoltage = &hVolt;
 
-//	if (hTemperature == NULL)
-//		hTemperature = &P2P_Server_App_Context.TemperatureControl;
+	if (hVibrate == NULL)
+		hVibrate = &hVib;
+
+	if (hTemperature == NULL)
+		hTemperature = &hTemp;
 
 	P2P_Server_App_Context.CurrentControl.eState = Reset;
 
