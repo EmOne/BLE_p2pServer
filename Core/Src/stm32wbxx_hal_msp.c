@@ -456,10 +456,15 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 {
 	GPIO_InitTypeDef GPIO_InitStruct =
 	{ 0 };
+//	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 	if (hadc->Instance == ADC1)
 	{
 		/* USER CODE BEGIN ADC1_MspInit 0 */
-
+//		PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+//		PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_SYSCLK;
+//		if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
+//			Error_Handler();
+//		}
 		/* USER CODE END ADC1_MspInit 0 */
 		/* Peripheral clock enable */
 		__HAL_RCC_ADC_CLK_ENABLE();
@@ -468,10 +473,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
 		/**ADC1 GPIO Configuration
 		 PA1     ------> ADC1_IN6
 		 */
-		GPIO_InitStruct.Pin = GPIO_PIN_0;
+		GPIO_InitStruct.Pin = ADCx_CHANNELa_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+		HAL_GPIO_Init(ADCx_CHANNELa_GPIO_PORT, &GPIO_InitStruct);
 
 		/* ADC1 interrupt Init */
 		HAL_NVIC_SetPriority(ADC1_IRQn, 0, 0);

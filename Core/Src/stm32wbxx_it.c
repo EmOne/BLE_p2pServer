@@ -66,6 +66,7 @@ extern UART_HandleTypeDef hlpuart1;
 extern UART_HandleTypeDef huart1;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE BEGIN EV */
+extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE END EV */
 
@@ -361,4 +362,17 @@ void EXTI15_10_IRQHandler(void)
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
 }
 
+/**
+  * @brief This function handles ADC1 global interrupt.
+  */
+void ADC1_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_IRQn 0 */
+
+  /* USER CODE END ADC1_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc1);
+  /* USER CODE BEGIN ADC1_IRQn 1 */
+
+  /* USER CODE END ADC1_IRQn 1 */
+}
 /* USER CODE END 1 */
