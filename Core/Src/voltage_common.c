@@ -202,7 +202,7 @@ void VoltageSink_IRQHandler(void)
 		le = (rReg[1]) & 0xff;
 		le |= (rReg[0] & 0xff) << 8;
 
-		hVoltage->iVoltage_Value = (((((float) le) - 4000) / 226.685f) * 100.0f);
+		hVoltage->iVoltage_Value = (((((float) le) - 3999) / 225.0f) * 100.0f);
 
 		/* Note: At this step, a voltage can be supplied to ADC channel input     */
 		/*       (by connecting an external signal voltage generator to the       */
@@ -214,29 +214,29 @@ void VoltageSink_IRQHandler(void)
 		/*## Enable peripherals ####################################################*/
 
 		/* Start ADC group regular conversion */
-		if (HAL_ADC_Start(&hadc1) != HAL_OK) {
+		if (HAL_ADC_Start_IT(&hadc1) != HAL_OK) {
 			/* ADC conversion start error */
 			Error_Handler();
 		}
 
-		/* Wait till conversion is done */
-		if (HAL_ADC_PollForConversion(&hadc1, 10) != HAL_OK) {
-			/* End Of Conversion flag not set on time */
-			Error_Handler();
-		} else {
-			/* Retrieve ADC conversion data */
-			uhADCxConvertedData = (HAL_ADC_GetValue(&hadc1) / 2) * 33.3405f;
-
-			/* Computation of ADC conversions raw data to physical values           */
-			/* using helper macro.                                                  */
-			uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(
-					VDDA_APPLI, uhADCxConvertedData);
-
-			//		HAL_Delay(100);
-
-			/* Toggle LED2 as heart beat */
-			//		BSP_LED_Toggle(LED2);
-		}
+//		/* Wait till conversion is done */
+//		if (HAL_ADC_PollForConversion(&hadc1, 10) != HAL_OK) {
+//			/* End Of Conversion flag not set on time */
+//			Error_Handler();
+//		} else {
+//			/* Retrieve ADC conversion data */
+//			uhADCxConvertedData = (HAL_ADC_GetValue(&hadc1));
+//
+//			/* Computation of ADC conversions raw data to physical values           */
+//			/* using helper macro.                                                  */
+//			uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(
+//					VDDA_APPLI, uhADCxConvertedData);
+//
+//			//		HAL_Delay(100);
+//
+//			/* Toggle LED2 as heart beat */
+//			//		BSP_LED_Toggle(LED2);
+//		}
 	}
 //	HAL_NVIC_EnableIRQ(INT_IRQn);
 	//
@@ -246,4 +246,29 @@ void VoltageSink_IRQHandler(void)
 
 	BSP_LED_Toggle(LED_BLUE);
 	P2PS_Send_Notification();
+}
+
+/**
+  * @brief  Conversion complete callback in non blocking mode
+  * @param  hadc: ADC handle
+  * @note   This example shows a simple way to report end of conversion
+  *         and get conversion result. You can add your own implementation.
+  * @retval None
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  /* Retrieve ADC conversion data */
+  uhADCxConvertedData = HAL_ADC_GetValue(hadc);
+
+  /* Computation of ADC conversions raw data to physical values           */
+  /* using helper macro.                                                  */
+  hVoltage->iVoltage_Status = uhADCxConvertedData_Voltage_mVolt = __ADC_CALC_DATA_VOLTAGE(VDDA_APPLI, uhADCxConvertedData);
+
+  /* Update status variable of ADC unitary conversion                     */
+//  ubAdcGrpRegularUnitaryConvStatus = 1;
+
+  /* Set LED depending on ADC unitary conversion status                   */
+  /* - Turn-on if ADC group regular unitary conversion is completed       */
+  /* - Turn-off if ADC group regular unitary conversion is not completed  */
+  BSP_LED_On(LED2);
 }

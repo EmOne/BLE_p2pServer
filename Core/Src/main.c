@@ -147,7 +147,7 @@ int main(void)
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 	MX_ADC1_Init();
-	BSP_LED_Init(LED2);
+//	BSP_LED_Init(LED2);
 	/* Run the ADC calibration */
 	if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
 	{
@@ -207,13 +207,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-	RCC_OscInitStruct.PLL.PLLN = 32;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV5;
+	RCC_OscInitStruct.PLL.PLLN = 8;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -556,12 +556,12 @@ static void MX_ADC1_Init(void)
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
 	hadc1.Init.DMAContinuousRequests = DISABLE;
 	hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
-	hadc1.Init.OversamplingMode = ENABLE;
-	hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_16;
-	hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_4;
-	hadc1.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
-	hadc1.Init.Oversampling.OversamplingStopReset =
-			ADC_REGOVERSAMPLING_CONTINUED_MODE;
+	hadc1.Init.OversamplingMode = DISABLE;
+//	hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_16;
+//	hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_4;
+//	hadc1.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
+//	hadc1.Init.Oversampling.OversamplingStopReset =
+//			ADC_REGOVERSAMPLING_CONTINUED_MODE;
 	if (HAL_ADC_Init(&hadc1) != HAL_OK)
 	{
 		Error_Handler();
@@ -569,7 +569,7 @@ static void MX_ADC1_Init(void)
 
 	/** Configure Regular Channel
 	 */
-	sConfig.Channel = ADC_CHANNEL_1;
+	sConfig.Channel = ADC_CHANNEL_2;
 	sConfig.Rank = ADC_REGULAR_RANK_1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_92CYCLES_5;
 	sConfig.SingleDiff = ADC_SINGLE_ENDED;
