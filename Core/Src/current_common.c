@@ -8,6 +8,7 @@
 #include "main.h"
 #include "stm32_seq.h"
 #include "current_common.h"
+#include "multiplex_common.h"
 
 bool bCurrentSourceStepInit = false;
 bool bCurrentSourceRampInit = false;

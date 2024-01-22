@@ -8,6 +8,7 @@
 #include "main.h"
 #include "stm32_seq.h"
 #include "vibrate_common.h"
+#include "multiplex_common.h"
 
 Vibrate_t hVib;
 bool bVibrateSinkInit = false;

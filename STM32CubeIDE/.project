@@ -313,6 +313,11 @@
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/Core/Src/main.c</locationURI>
 		</link>
 		<link>
+			<name>Application/User/Core/multiplexer_common.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/multiplexer_common.c</locationURI>
+		</link>
+		<link>
 			<name>Application/User/Core/stm32_lpm_if.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/Core/Src/stm32_lpm_if.c</locationURI>

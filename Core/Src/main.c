@@ -42,7 +42,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "multiplex_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,7 +84,7 @@ RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN PV */
 ADC_HandleTypeDef hadc1;
-
+SPI_HandleTypeDef hspi2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -153,6 +153,14 @@ int main(void)
 	{
 		/* Calibration Error */
 		Error_Handler();
+	}
+
+	multiplexer_init(&hspi2);
+
+	for (int var = 0; var < 16; ++var)
+	{
+		multiplexer_io_channel(1 << var);
+		HAL_Delay(1000);
 	}
   /* USER CODE END 2 */
 

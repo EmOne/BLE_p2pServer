@@ -8,6 +8,7 @@
 #include "main.h"
 #include "stm32_seq.h"
 #include "voltage_common.h"
+#include "multiplex_common.h"
 
 Voltage_t hVolt;
 bool bVoltageSinkInit = false;
