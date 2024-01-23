@@ -62,7 +62,7 @@
 /* Init variable out of ADC expected conversion data range for data         */
 /* on 16 bits (oversampling enabled).                                       */
 #define VAR_CONVERTED_DATA_INIT_VALUE_16BITS    (0xFFFF + 1U)
-
+#define DELAY 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -157,24 +157,35 @@ int main(void)
 
 	multiplexer_init(&hspi2);
 
-	for (int var = 0; var < 16; ++var)
-	{
-		multiplexer_io_channel(1 << var);
-		HAL_Delay(1000);
-	}
+	multiplexer_io_channel(0);
   /* USER CODE END 2 */
 
   /* Init code for STM32_WPAN */
-  MX_APPE_Init();
+	MX_APPE_Init();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while(1)
 	{
     /* USER CODE END WHILE */
-    MX_APPE_Process();
+		MX_APPE_Process();
 
     /* USER CODE BEGIN 3 */
+		HAL_Delay(DELAY);
+		for (int var = 0; var < 16; ++var)
+		{
+			multiplexer_io_channel(1 << var);
+			HAL_Delay(DELAY);
+		}
+//		multiplexer_io_channel(0);
+
+//		HAL_Delay(DELAY);
+		for (int var = 14; var > 1; --var)
+		{
+			multiplexer_io_channel(1 << var);
+			HAL_Delay(DELAY);
+		}
+//		multiplexer_io_channel(0);
   }
   /* USER CODE END 3 */
 }

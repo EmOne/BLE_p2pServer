@@ -1,5 +1,5 @@
 /*
- * voltage_common.h
+ * multiplexer_common.h
  *
  *  Created on: Jan 20, 2023
  *      Author: anol_
@@ -47,8 +47,8 @@
 
 void multiplexer_init(void *_handler);
 void multiplexer_io_channel(uint16_t io);
-void multiplexer_reset(uint8_t state);
-void multiplexer_latching_set(uint8_t state);
+void multiplexer_reset(void);
+void multiplexer_latching_set(void);
 void multiplex_power_save_config(uint8_t config);
 void multiplex_power_save_enable(uint8_t en);
 

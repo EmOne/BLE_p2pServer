@@ -136,9 +136,9 @@ void multiplexer_init(void *_handler)
 		 - SD card SPI interface max baudrate is 25MHz for write/read
 		 - PCLK2 max frequency is 32 MHz
 		 */
-		_mpHandler->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+		_mpHandler->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
 		_mpHandler->Init.Direction = SPI_DIRECTION_2LINES;
-		_mpHandler->Init.CLKPhase = SPI_PHASE_2EDGE;
+		_mpHandler->Init.CLKPhase = SPI_PHASE_1EDGE;
 		_mpHandler->Init.CLKPolarity = SPI_POLARITY_HIGH;
 		_mpHandler->Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 		_mpHandler->Init.CRCPolynomial = 7;
@@ -178,47 +178,39 @@ void multiplexer_init(void *_handler)
 
 		multiplex_power_save_config(0);
 
-		multiplexer_reset(1);
-		HAL_Delay(20);
-		multiplexer_reset(0);
-		multiplexer_latching_set(1);
+		multiplexer_latching_set();
+		HAL_Delay(50);
+		multiplexer_reset();
+		HAL_Delay(50);
+
+//		multiplex_power_save_enable(1);
+
 	}
 }
 
 void multiplexer_io_channel(uint16_t io)
 {
-	uint8_t data[3] =
+	uint8_t data[5] =
 	{ 0 };
 	data[0] = REG_OUPUT_CTL;
 	data[1] = io >> 0;
-	data[2] = io >> 8;
+	data[2] = REG_OUPUT_CTL;
+	data[3] = io >> 8;
 	MP_SPI_CS_ENABLE();
-	HAL_SPI_Transmit(_mpHandler, (uint8_t*) data, 3, 100);
+	HAL_SPI_Transmit(_mpHandler, (uint8_t*) data, 4, 1000);
 	MP_SPI_CS_DISABLE();
 }
 
-void multiplexer_reset(uint8_t state)
+void multiplexer_reset(void)
 {
-	if (state)
-	{
-		MP_RESET_ENABLE();
-	}
-	else
-	{
-		MP_RESET_DISABLE();
-	}
+	MP_RESET_ENABLE();
+	MP_RESET_DISABLE();
 }
 
-void multiplexer_latching_set(uint8_t state)
+void multiplexer_latching_set(void)
 {
-	if (state)
-	{
-		MP_LATCHING_ON();
-	}
-	else
-	{
-		MP_LATCHING_OFF();
-	}
+	MP_LATCHING_ON();
+	MP_LATCHING_OFF();
 }
 
 void multiplex_power_save_config(uint8_t config)
